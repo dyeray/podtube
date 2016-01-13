@@ -1,0 +1,9 @@
+runtime: custom
+vm: true
+api_version: 1
+module: podtube
+threadsafe: yes
+
+handlers:
+- url: .*
+  script: main.app
