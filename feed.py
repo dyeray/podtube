@@ -18,11 +18,13 @@ def get_feed(channel_id):
     fg.title(channel['snippet']['title'])
     fg.description(channel['snippet']['description'])
     fg.link(href='https://www.youtube.com/channel/' + channel_id, rel='alternate')
+    fg.image(channel['snippet']['thumbnails']['high']['url'])
     for video in videos['items']:
         fe = fg.add_entry()
         fe.id(video['id']['videoId'])
         fe.title(video['snippet']['title'])
         fe.description(video['snippet']['description'])
         fe.pubdate(dateutil.parser.parse(video['snippet']['publishedAt']))
+        fe.podcast.itunes_image(video['snippet']['thumbnails']['high']['url'])
         fe.enclosure(YouTube("https://www.youtube.com/watch?v=" + video['id']['videoId']).filter('mp4')[0].url, 0, 'video/mpeg')
     return fg.rss_str(pretty=True)
