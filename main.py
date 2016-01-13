@@ -7,8 +7,8 @@ app = Flask(__name__)
 def hello():
     channel_id = request.args.get('c')
     if channel_id:
-        return get_feed(channel_id), 200
-    return Response('?c=<channel_id>', mimetype='application/rss+xml')
+        return Response(get_feed(channel_id), mimetype='application/rss+xml', content_type='text/xml')
+    return '?c=<channel_id>'
 
 
 @app.errorhandler(404)
