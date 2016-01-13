@@ -2,6 +2,7 @@ import os
 from apiclient import discovery
 from feedgen.feed import FeedGenerator
 from pytube import YouTube
+import dateutil.parser
 
 
 def _create_youtube_client(http=None):
@@ -22,5 +23,6 @@ def get_feed(channel_id):
         fe.id(video['id']['videoId'])
         fe.title(video['snippet']['title'])
         fe.description(video['snippet']['description'])
+        fe.pubdate(dateutil.parser.parse(video['snippet']['publishedAt']))
         fe.enclosure(YouTube("https://www.youtube.com/watch?v=" + video['id']['videoId']).filter('mp4')[0].url, 0, 'video/mpeg')
     return fg.rss_str(pretty=True)
