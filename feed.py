@@ -3,6 +3,7 @@ from apiclient import discovery
 from feedgen.feed import FeedGenerator
 from pytube import YouTube
 import dateutil.parser
+import requests
 
 
 def _create_youtube_client(http=None):
@@ -12,7 +13,7 @@ def _create_youtube_client(http=None):
 def get_feed(channel_id):
     service = _create_youtube_client()
     channel = service.channels().list(part='snippet', id=channel_id).execute()['items'][0]
-    videos = service.search().list(part='snippet', channelId=channel_id).execute()
+    videos = service.search().list(part='snippet', channelId=channel_id, order='date').execute()
     fg = FeedGenerator()
     fg.load_extension('podcast')
     fg.title(channel['snippet']['title'])
@@ -26,5 +27,7 @@ def get_feed(channel_id):
         fe.description(video['snippet']['description'])
         fe.pubdate(dateutil.parser.parse(video['snippet']['publishedAt']))
         fe.podcast.itunes_image(video['snippet']['thumbnails']['high']['url'])
-        fe.enclosure(YouTube("https://www.youtube.com/watch?v=" + video['id']['videoId']).filter('mp4')[0].url, 0, 'video/mpeg')
+        video_url = YouTube("https://www.youtube.com/watch?v=" + video['id']['videoId']).filter('mp4')[0].url
+        video_info = requests.head(video_url)
+        fe.enclosure(video_url, video_info.headers['Content-Length'], video_info.headers['Content-Type'])
     return fg.rss_str(pretty=True)
