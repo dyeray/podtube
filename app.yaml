@@ -7,3 +7,6 @@ threadsafe: yes
 handlers:
 - url: .*
   script: main.app
+
+env_variables:
+  youtube_developer_key: 'INPUT HERE YOUR YOUTUBE DEVELOPER KEY'
