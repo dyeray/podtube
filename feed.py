@@ -4,6 +4,7 @@ from feedgen.feed import FeedGenerator
 from pytube import YouTube
 import dateutil.parser
 import requests
+import sys
 
 
 def _create_youtube_client(http=None):
@@ -21,6 +22,8 @@ def get_feed(channel_id):
     fg.link(href='https://www.youtube.com/channel/' + channel_id, rel='alternate')
     fg.image(channel['snippet']['thumbnails']['high']['url'])
     for video in videos['items']:
+        if not 'videoId' in video['id']:
+            continue
         fe = fg.add_entry()
         fe.id(video['id']['videoId'])
         fe.title(video['snippet']['title'])
@@ -31,3 +34,7 @@ def get_feed(channel_id):
         video_info = requests.head(video_url)
         fe.enclosure(video_url, video_info.headers['Content-Length'], video_info.headers['Content-Type'])
     return fg.rss_str(pretty=True)
+
+
+if __name__ == "__main__":
+    print(get_feed(sys.argv[1]))
