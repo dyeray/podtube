@@ -2,6 +2,7 @@ import os
 from apiclient import discovery
 from feedgen.feed import FeedGenerator
 from pytube import YouTube
+from pytube.exceptions import PytubeError
 import dateutil.parser
 import requests
 import sys
@@ -23,13 +24,16 @@ def get_feed(channel_id):
     fg.link(href='https://www.youtube.com/channel/' + channel_id, rel='alternate')
     fg.image(channel['snippet']['thumbnails']['high']['url'])
     for video in videos['items']:
+        try:
+            video_url = YouTube("https://www.youtube.com/watch?v=" + video['id']['videoId']).filter('mp4')[0].url
+        except PytubeError:
+            continue
         fe = fg.add_entry()
         fe.id(video['id']['videoId'])
         fe.title(video['snippet']['title'])
         fe.description(video['snippet']['description'])
         fe.pubdate(dateutil.parser.parse(video['snippet']['publishedAt']))
         fe.podcast.itunes_image(video['snippet']['thumbnails']['high']['url'])
-        video_url = YouTube("https://www.youtube.com/watch?v=" + video['id']['videoId']).filter('mp4')[0].url
         video_info = requests.head(video_url)
         fe.enclosure(video_url, video_info.headers['Content-Length'], video_info.headers['Content-Type'])
     return fg.rss_str(pretty=True)
