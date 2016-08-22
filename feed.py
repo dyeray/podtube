@@ -2,7 +2,7 @@ import os
 from apiclient import discovery
 from feedgen.feed import FeedGenerator
 from pytube import YouTube
-from pytube.exceptions import PytubeError
+from pytube.exceptions import PytubeError, AgeRestricted
 import dateutil.parser
 import requests
 import sys
@@ -26,7 +26,7 @@ def get_feed(channel_id):
     for video in videos['items']:
         try:
             video_url = YouTube("https://www.youtube.com/watch?v=" + video['id']['videoId']).filter('mp4')[0].url
-        except PytubeError:
+        except (PytubeError, AgeRestricted):
             continue
         fe = fg.add_entry()
         fe.id(video['id']['videoId'])
