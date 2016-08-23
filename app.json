@@ -1,0 +1,11 @@
+{
+  "name": "podtube",
+  "description": "Web application that creates a video feed subscribable by a podcatcher from Youtube channel",
+  "repository": "https://github.com/dyeray/podtube",
+  "env": {
+    "youtube_developer_key": {
+      "description": "YouTube API key. You can obtain yours at https://console.developers.google.com/apis/credentials"
+    }
+  }
+}
+
