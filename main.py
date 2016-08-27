@@ -1,14 +1,23 @@
-from flask import Flask, request, Response
-from feed import get_feed
+from flask import Flask, request, Response, render_template
+from feed import get_feed, get_channel_id
 app = Flask(__name__)
 
 
 @app.route('/')
-def hello():
+def index():
     channel_id = request.args.get('c')
     if channel_id:
         return Response(get_feed(channel_id), mimetype='application/rss+xml', content_type='text/xml')
-    return '?c=<channel_id>'
+    return render_template('index.html')
+
+
+@app.route('/', methods = ['POST'])
+def getPersonById():
+    user_input = request.form['user_input']
+    channel_id = get_channel_id(user_input)
+    feed_url = request.host_url + '?c=' + channel_id if channel_id else ''
+    return feed_url
+
 
 
 @app.errorhandler(404)
