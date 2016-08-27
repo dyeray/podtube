@@ -6,6 +6,7 @@ from pytube.exceptions import PytubeError, AgeRestricted
 import dateutil.parser
 import requests
 import sys
+import re
 
 
 def _create_youtube_client(http=None):
@@ -39,5 +40,35 @@ def get_feed(channel_id):
     return fg.rss_str(pretty=True)
 
 
+def get_channel_id(user_input):
+    url_regex = r'((https?:\/\/)?www\.)?youtube\.com\/(channel|user)\/(\w+)'
+    match = re.match(url_regex, user_input)
+    service = _create_youtube_client()
+    if match:
+        if match.group(3) == 'user':
+            user_id = match.group(4)
+        else:
+            channel_id = match.group(4)
+    else:
+        user_id = user_input
+        channel_id = user_input
+    try:
+        if 'channel_id' in locals():
+            return service.channels().list(part='snippet', id=channel_id).execute()['items'][0]['id']
+    except IndexError:
+        pass
+    try:
+        if 'user_id' in locals():
+            return service.channels().list(part='snippet', forUsername=user_id).execute()['items'][0]['id']
+    except IndexError:
+        pass
+    return None 
+
+
 if __name__ == "__main__":
-    print(get_feed(sys.argv[1]))
+    if sys.argv[1] == 'id':
+        print(get_channel_id(sys.argv[2]))
+    elif sys.argv[1] == 'content':
+        print(get_feed(sys.argv[2]))
+    else:
+        print('ERROR: Call it passing "id <user/channel/url>" to get channel id, or "content <channel_id>" to get feed content')
