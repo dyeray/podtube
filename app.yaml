@@ -1,12 +1,10 @@
-runtime: custom
+runtime: python
 vm: true
-api_version: 1
-module: podtube
-threadsafe: yes
+service: podtube
+entrypoint: gunicorn -b :$PORT main:app
 
-handlers:
-- url: .*
-  script: main.app
+runtime_config:
+  python_version: 3
 
 env_variables:
   youtube_developer_key: 'INPUT HERE YOUR YOUTUBE DEVELOPER KEY'
