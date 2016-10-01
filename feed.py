@@ -2,6 +2,7 @@ import os
 from apiclient import discovery
 from feedgen.feed import FeedGenerator
 import youtube_dl
+from ytdl_config import ytdl_opts
 import dateutil.parser
 import requests
 import sys
@@ -23,7 +24,7 @@ def get_feed(channel_id):
     fg.description(channel['snippet']['description'])
     fg.link(href='https://www.youtube.com/channel/' + channel_id, rel='alternate')
     fg.image(channel['snippet']['thumbnails']['high']['url'])
-    ytdl = youtube_dl.YoutubeDL()
+    ytdl = youtube_dl.YoutubeDL(ytdl_opts)
     for video in videos['items']:
         try:
             video_url = ytdl.extract_info('https://www.youtube.com/watch?v=faycTt-FtfU&feature=youtu.be&t=16m39s', download=False)['url']
