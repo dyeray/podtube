@@ -1,6 +1,6 @@
 google-api-python-client
 feedgen
-pytube
+youtube_dl
 flask
 gunicorn
 python-dateutil
