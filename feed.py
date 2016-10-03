@@ -27,7 +27,7 @@ def get_feed(channel_id):
     ytdl = youtube_dl.YoutubeDL(ytdl_opts)
     for video in videos['items']:
         try:
-            video_url = ytdl.extract_info('https://www.youtube.com/watch?v=faycTt-FtfU&feature=youtu.be&t=16m39s', download=False)['url']
+            video_url = ytdl.extract_info("https://www.youtube.com/watch?v=" + video['id']['videoId'], download=False)['url']
         except Exception:
             continue
         fe = fg.add_entry()
