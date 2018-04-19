@@ -1,12 +1,13 @@
 import os
-from apiclient import discovery
-from feedgen.feed import FeedGenerator
-from pytube import YouTube
-from pytube.exceptions import PytubeError, AgeRestricted
+import re
+import sys
+
 import dateutil.parser
 import requests
-import sys
-import re
+from apiclient import discovery
+from feedgen.feed import FeedGenerator
+
+from plugins import get_plugin_from_settings, PluginException
 
 
 def _create_youtube_client(http=None):
@@ -24,10 +25,13 @@ def get_feed(channel_id):
     fg.description(channel['snippet']['description'])
     fg.link(href='https://www.youtube.com/channel/' + channel_id, rel='alternate')
     fg.image(channel['snippet']['thumbnails']['high']['url'])
+    youtube_plugin = get_plugin_from_settings()
+
     for video in videos['items']:
         try:
-            video_url = YouTube("https://www.youtube.com/watch?v=" + video['id']['videoId']).filter('mp4')[0].url
-        except (PytubeError, AgeRestricted):
+            video_url = youtube_plugin.extract_link(
+                "https://www.youtube.com/watch?v=" + video['id']['videoId'])
+        except PluginException:
             continue
         fe = fg.add_entry()
         fe.id(video['id']['videoId'])
@@ -36,7 +40,8 @@ def get_feed(channel_id):
         fe.pubdate(dateutil.parser.parse(video['snippet']['publishedAt']))
         fe.podcast.itunes_image(video['snippet']['thumbnails']['high']['url'])
         video_info = requests.head(video_url)
-        fe.enclosure(video_url, video_info.headers['Content-Length'], video_info.headers['Content-Type'])
+        fe.enclosure(video_url, video_info.headers['Content-Length'],
+                     video_info.headers['Content-Type'])
     return fg.rss_str(pretty=True)
 
 
