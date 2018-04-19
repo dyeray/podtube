@@ -4,4 +4,5 @@ youtube_dl
 flask
 gunicorn
 python-dateutil
+pytube==6.1.11
 requests
