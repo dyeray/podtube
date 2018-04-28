@@ -8,6 +8,7 @@ class MyLogger:
     def error(self, msg):
         print(msg)
 
+
 ytdl_opts = {
     'format': 'worst',
     'logger': MyLogger()

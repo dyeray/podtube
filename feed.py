@@ -73,15 +73,17 @@ def get_channel_id(user_input):
         channel_id = user_input
     try:
         if 'channel_id' in locals():
-            return service.channels().list(part='snippet', id=channel_id).execute()['items'][0]['id']
+            return service.channels().list(
+                part='snippet', id=channel_id).execute()['items'][0]['id']
     except IndexError:
         pass
     try:
         if 'user_id' in locals():
-            return service.channels().list(part='snippet', forUsername=user_id).execute()['items'][0]['id']
+            return service.channels().list(
+                part='snippet', forUsername=user_id).execute()['items'][0]['id']
     except IndexError:
         pass
-    return None 
+    return None
 
 
 if __name__ == "__main__":
@@ -90,4 +92,5 @@ if __name__ == "__main__":
     elif sys.argv[1] == 'content':
         print(get_channel_feed(sys.argv[2]))
     else:
-        print('ERROR: Call it passing "id <user/channel/url>" to get channel id, or "content <channel_id>" to get feed content')
+        print('ERROR: Call it passing "id <user/channel/url>" to get channel id, '
+              'or "content <channel_id>" to get feed content')

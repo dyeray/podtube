@@ -12,13 +12,12 @@ def index():
     return render_template('index.html')
 
 
-@app.route('/', methods = ['POST'])
+@app.route('/', methods=['POST'])
 def getPersonById():
     user_input = request.form['user_input']
     channel_id = get_channel_id(user_input)
     feed_url = request.host_url + '?c=' + channel_id if channel_id else ''
     return feed_url
-
 
 
 @app.errorhandler(404)
