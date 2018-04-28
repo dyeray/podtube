@@ -1,5 +1,5 @@
 from flask import Flask, request, Response, render_template
-from feed import get_feed, get_channel_id
+from feed import get_channel_feed, get_channel_id
 app = Flask(__name__)
 
 
@@ -7,7 +7,8 @@ app = Flask(__name__)
 def index():
     channel_id = request.args.get('c')
     if channel_id:
-        return Response(get_feed(channel_id), mimetype='application/rss+xml', content_type='text/xml')
+        return Response(get_channel_feed(channel_id), mimetype='application/rss+xml',
+                        content_type='text/xml')
     return render_template('index.html')
 
 
