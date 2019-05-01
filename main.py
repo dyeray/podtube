@@ -1,4 +1,5 @@
-from flask import Flask, request, Response, render_template, redirect
+import requests
+from flask import Flask, request, Response, render_template, redirect, stream_with_context
 
 from feed import render_feed, get_channel_id
 from plugins.plugin_factory import PluginFactory
@@ -26,7 +27,8 @@ def download():
     item_id = request.args.get('id')
     service = request.args.get('s')
     url = PluginFactory.create(service).get_item_url(item_id)
-    return redirect(url, code=302)
+    req = requests.get(url, stream=True)
+    return Response(stream_with_context(req.iter_content()), content_type=req.headers['content-type'])
 
 
 @app.route('/', methods=['POST'])
