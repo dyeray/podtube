@@ -1,8 +1,8 @@
-google-api-python-client
-feedgen
-youtube_dl
-flask
-gunicorn
+google-api-python-client==1.7.8
+feedgen==0.7.0
+youtube_dl==2019.4.30
+flask==1.0.2
+gunicorn==19.9.0
 python-dateutil
-pytube
-requests
+pytube==9.5.0
+requests==2.21.0
