@@ -15,7 +15,7 @@ from model import PodcastItem, PodcastFeed
 
 class YouTubePlugin:
 
-    def get_feed(self, channel_id):
+    def get_feed(self, channel_id, base_url):
         service = self._get_youtube_client()
         channel = service.channels().list(part='snippet', id=channel_id).execute()['items'][0]
         return self._get_feed(
@@ -25,9 +25,13 @@ class YouTubePlugin:
             description=channel['snippet']['description'],
             link='https://www.youtube.com/channel/' + channel_id,
             image=channel['snippet']['thumbnails']['high']['url'],
+            base_url=base_url
         )
 
-    def _get_feed(self, feed_id, query, title, description, link, image):
+    def get_item_url(self, item_id):
+        return self.extract_link(f'https://www.youtube.com/watch?v={item_id}')
+
+    def _get_feed(self, feed_id, query, title, description, link, image, base_url):
         service = self._get_youtube_client()
         videos = service.search().list(part='snippet', **query, order='date',
                                        type='video', safeSearch='none').execute()
@@ -37,10 +41,10 @@ class YouTubePlugin:
             description=description,
             link=link,
             image=image,
-            items=self._get_items(videos)
+            items=self._get_items(videos, base_url)
         )
 
-    def _get_items(self, videos) -> List[PodcastItem]:
+    def _get_items(self, videos, base_url) -> List[PodcastItem]:
         items = []
         for video in videos['items']:
             try:
@@ -51,7 +55,7 @@ class YouTubePlugin:
             video_info = requests.head(video_url)
             items.append(PodcastItem(
                 item_id=video['id']['videoId'],
-                url=video_url,
+                url=base_url + 'download?id=' + video['id']['videoId'],
                 title=video['snippet']['title'],
                 description=video['snippet']['description'],
                 date=dateutil.parser.parse(video['snippet']['publishedAt']),
