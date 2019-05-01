@@ -28,7 +28,7 @@ def render_feed(feed: PodcastFeed):
         fe.id(item.item_id)
         fe.title(item.title)
         fe.description(item.description)
-        fe.pubdate(item.date)
+        fe.pubDate(item.date)
         fe.podcast.itunes_image(item.image)
         fe.enclosure(item.url, item.content_length, item.content_type)
     return fg.atom_str(pretty=True)

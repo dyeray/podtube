@@ -8,4 +8,4 @@ runtime_config:
 
 env_variables:
   youtube_developer_key: 'INPUT HERE YOUR YOUTUBE DEVELOPER KEY'
-  youtube_backend: 'YouTubeDL'
+  youtube_backend: 'PyTube'

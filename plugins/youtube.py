@@ -7,7 +7,7 @@ import requests
 import youtube_dl
 from apiclient import discovery
 from pytube import YouTube
-from pytube.exceptions import PytubeError, AgeRestricted
+from pytube.exceptions import PytubeError
 
 from ytdl_config import ytdl_opts
 from model import PodcastItem, PodcastFeed
@@ -73,8 +73,8 @@ class PyTube(YouTubePlugin):
 
     def extract_link(self, url):
         try:
-            return YouTube(url).filter('mp4')[0].url
-        except (PytubeError, AgeRestricted):
+            return YouTube(url).streams.filter(progressive=True, subtype='mp4').order_by('resolution').desc().all()[0]
+        except PytubeError:
             raise PluginException
 
 
