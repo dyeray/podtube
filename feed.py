@@ -21,6 +21,7 @@ def render_feed(feed: PodcastFeed):
     fg.description(feed.description)
     fg.link(href=feed.link, rel='alternate')
     fg.image(feed.image)
+    fg.id(feed.feed_id)
 
     for item in feed.items:
         fe = fg.add_entry()
@@ -30,7 +31,7 @@ def render_feed(feed: PodcastFeed):
         fe.pubdate(item.date)
         fe.podcast.itunes_image(item.image)
         fe.enclosure(item.url, item.content_length, item.content_type)
-    return fg.rss_str(pretty=True)
+    return fg.atom_str(pretty=True)
 
 
 def get_channel_id(user_input):

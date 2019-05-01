@@ -19,6 +19,7 @@ class YouTubePlugin:
         service = self._get_youtube_client()
         channel = service.channels().list(part='snippet', id=channel_id).execute()['items'][0]
         return self._get_feed(
+            feed_id=channel_id,
             query={'channelId': channel_id},
             title=channel['snippet']['title'],
             description=channel['snippet']['description'],
@@ -26,11 +27,12 @@ class YouTubePlugin:
             image=channel['snippet']['thumbnails']['high']['url'],
         )
 
-    def _get_feed(self, query, title, description, link, image):
+    def _get_feed(self, feed_id, query, title, description, link, image):
         service = self._get_youtube_client()
         videos = service.search().list(part='snippet', **query, order='date',
                                        type='video', safeSearch='none').execute()
         return PodcastFeed(
+            feed_id=feed_id,
             title=title,
             description=description,
             link=link,

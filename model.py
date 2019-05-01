@@ -22,3 +22,4 @@ class PodcastFeed:
     link: str
     image: str
     items: List[PodcastItem]
+    feed_id: str
