@@ -1,15 +1,24 @@
 from flask import Flask, request, Response, render_template
-from feed import get_channel_feed, get_channel_id
+
+from feed import render_feed, get_channel_id
+from plugins.plugin_factory import PluginFactory
+
+
 app = Flask(__name__)
 
 
 @app.route('/')
 def index():
     channel_id = request.args.get('c')
-    if channel_id:
-        return Response(get_channel_feed(channel_id), mimetype='application/rss+xml',
-                        content_type='text/xml')
-    return render_template('index.html')
+    if not channel_id:
+        return render_template('index.html')
+    service = request.args.get('s')
+    feed_object = PluginFactory.create(service).get_feed(channel_id)
+    return Response(
+        render_feed(feed_object),
+        mimetype='application/rss+xml',
+        content_type='text/xml'
+    )
 
 
 @app.route('/', methods=['POST'])

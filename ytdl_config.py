@@ -10,6 +10,6 @@ class MyLogger:
 
 
 ytdl_opts = {
-    'format': 'worst',
+    'format': '(mp4)[height <= 720]',
     'logger': MyLogger()
 }
