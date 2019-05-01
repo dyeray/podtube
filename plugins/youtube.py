@@ -73,7 +73,11 @@ class PyTube(YouTubePlugin):
 
     def extract_link(self, url):
         try:
-            return YouTube(url).streams.filter(progressive=True, subtype='mp4').order_by('resolution').desc().all()[0]
+            return (YouTube(url).streams
+                    .filter(progressive=True, subtype='mp4')
+                    .order_by('resolution')
+                    .desc()
+                    .all()[0].url)
         except PytubeError:
             raise PluginException
 
