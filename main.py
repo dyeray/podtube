@@ -27,8 +27,9 @@ def download():
     item_id = request.args.get('id')
     service = request.args.get('s')
     url = PluginFactory.create(service).get_item_url(item_id)
-    req = requests.get(url, stream=True)
-    return Response(stream_with_context(req.iter_content()), content_type=req.headers['content-type'])
+    #req = requests.get(url, stream=True)
+    #return Response(stream_with_context(req.iter_content()), content_type=req.headers['content-type'])
+    return redirect(url, code=302)
 
 
 @app.route('/', methods=['POST'])
