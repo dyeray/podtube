@@ -45,7 +45,7 @@ class IvooxPlugin(Plugin):
             date=date,
             image=extract(item.css('a img::attr(src)')),
             content_length='',
-            content_type='',
+            content_type='audio/mp4',
         )
 
     def get_item_url(self, item_id):

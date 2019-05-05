@@ -24,7 +24,7 @@ class PluginFactory:
 
     @classmethod
     def create(cls, service):
-        constructor = cls.plugins.get(service, 'youtube')
+        constructor = cls.plugins.get(service, get_plugin_from_settings)
         return constructor()
 
 
