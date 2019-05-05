@@ -6,3 +6,5 @@ gunicorn==19.9.0
 python-dateutil
 pytube==9.5.0
 requests==2.21.0
+parsel==1.5.1
+dateparser==0.7.1

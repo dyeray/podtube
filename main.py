@@ -10,11 +10,11 @@ app = Flask(__name__)
 
 @app.route('/')
 def index():
-    channel_id = request.args.get('c')
-    if not channel_id:
+    feed_id = request.args.get('c')
+    if not feed_id:
         return render_template('index.html')
     service = request.args.get('s')
-    feed_object = PluginFactory.create(service).get_feed(channel_id, request.host_url)
+    feed_object = PluginFactory.create(service).get_feed(feed_id, request.host_url)
     return Response(
         render_feed(feed_object),
         mimetype='application/rss+xml',
@@ -26,9 +26,13 @@ def index():
 def download():
     item_id = request.args.get('id')
     service = request.args.get('s')
+    proxy = request.args.get('proxy') or False
     url = PluginFactory.create(service).get_item_url(item_id)
-    req = requests.get(url, stream=True)
-    return Response(stream_with_context(req.iter_content()), content_type=req.headers['content-type'])
+    if proxy:
+        req = requests.get(url, stream=True)
+        return Response(stream_with_context(req.iter_content()), content_type=req.headers['content-type'])
+    else:
+        return redirect(url, code=302)
 
 
 @app.route('/', methods=['POST'])

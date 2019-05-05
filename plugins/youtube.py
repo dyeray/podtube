@@ -11,19 +11,20 @@ from pytube.exceptions import PytubeError
 
 from ytdl_config import ytdl_opts
 from model import PodcastItem, PodcastFeed
+from plugins.plugin import Plugin
 
 
-class YouTubePlugin:
+class YouTubePlugin(Plugin):
 
-    def get_feed(self, channel_id, base_url):
+    def get_feed(self, feed_id, base_url):
         service = self._get_youtube_client()
-        channel = service.channels().list(part='snippet', id=channel_id).execute()['items'][0]
+        channel = service.channels().list(part='snippet', id=feed_id).execute()['items'][0]
         return self._get_feed(
-            feed_id=channel_id,
-            query={'channelId': channel_id},
+            feed_id=feed_id,
+            query={'channelId': feed_id},
             title=channel['snippet']['title'],
             description=channel['snippet']['description'],
-            link='https://www.youtube.com/channel/' + channel_id,
+            link='https://www.youtube.com/channel/' + feed_id,
             image=channel['snippet']['thumbnails']['high']['url'],
             base_url=base_url
         )
@@ -64,9 +65,6 @@ class YouTubePlugin:
                 content_type=video_info.headers['Content-Type'],
             ))
         return items
-
-    def extract_link(self, url):
-        raise NotImplementedError
 
     @lru_cache(maxsize=1)
     def _get_youtube_client(self):
