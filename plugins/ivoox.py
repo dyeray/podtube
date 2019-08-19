@@ -44,7 +44,6 @@ class IvooxPlugin(Plugin):
             description=extract(item.css('.title-wrapper button::attr(data-content)')),
             date=date,
             image=extract(item.css('a img::attr(src)')),
-            content_length='',
             content_type='audio/mp4',
         )
 

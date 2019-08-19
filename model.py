@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
 
 @dataclass
@@ -11,8 +11,8 @@ class PodcastItem:
     date: datetime
     image: str
     url: str
-    content_length: str
     content_type: str
+    content_length: Optional[str] = None
 
 
 @dataclass

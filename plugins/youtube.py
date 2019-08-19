@@ -1,14 +1,13 @@
-import os
-from functools import lru_cache
 from typing import List
 
 import dateutil.parser
 import requests
 import youtube_dl
-from apiclient import discovery
+from parsel import Selector, SelectorList
 from pytube import YouTube
 from pytube.exceptions import PytubeError
 
+from scraper import extract
 from ytdl_config import ytdl_opts
 from model import PodcastItem, PodcastFeed
 from plugins.plugin import Plugin
@@ -17,58 +16,47 @@ from plugins.plugin import Plugin
 class YouTubePlugin(Plugin):
 
     def get_feed(self, feed_id, base_url):
-        service = self._get_youtube_client()
-        channel = service.channels().list(part='snippet', id=feed_id).execute()['items'][0]
+        response = requests.get(f"https://www.youtube.com/channel/{feed_id}")
+        sel = Selector(response.text)
         return self._get_feed(
             feed_id=feed_id,
-            query={'channelId': feed_id},
-            title=channel['snippet']['title'],
-            description=channel['snippet']['description'],
+            title=extract(sel.css('[property="og:title"]::attr(content)')),
+            description=extract(sel.css('[property="og:description"]::attr(content)')),
             link='https://www.youtube.com/channel/' + feed_id,
-            image=channel['snippet']['thumbnails']['high']['url'],
+            image=extract(sel.css('[property="og:image"]::attr(content)')),
             base_url=base_url
         )
 
     def get_item_url(self, item_id):
         return self.extract_link(f'https://www.youtube.com/watch?v={item_id}')
 
-    def _get_feed(self, feed_id, query, title, description, link, image, base_url):
-        service = self._get_youtube_client()
-        videos = service.search().list(part='snippet', **query, order='date',
-                                       type='video', safeSearch='none').execute()
+    def _get_feed(self, feed_id, title, description, link, image, base_url):
+        response = requests.get(f"https://www.youtube.com/feeds/videos.xml?channel_id={feed_id}")
+        sel = Selector(response.text)
+        entries = sel.css('feed > entry')
         return PodcastFeed(
             feed_id=feed_id,
             title=title,
             description=description,
             link=link,
             image=image,
-            items=self._get_items(videos, base_url)
+            items=self._get_items(entries, base_url)
         )
 
-    def _get_items(self, videos, base_url) -> List[PodcastItem]:
+    def _get_items(self, entries: SelectorList, base_url: str) -> List[PodcastItem]:
         items = []
-        for video in videos['items']:
-            try:
-                video_url = self.extract_link(
-                    "https://www.youtube.com/watch?v=" + video['id']['videoId'])
-            except PluginException:
-                continue
-            video_info = requests.head(video_url)
+        for entry in entries:
+            video_id = extract(entry.css('videoId::text'))
             items.append(PodcastItem(
-                item_id=video['id']['videoId'],
-                url=base_url + 'download?id=' + video['id']['videoId'],
-                title=video['snippet']['title'],
-                description=video['snippet']['description'],
-                date=dateutil.parser.parse(video['snippet']['publishedAt']),
-                image=video['snippet']['thumbnails']['high']['url'],
-                content_length=video_info.headers['Content-Length'],
-                content_type=video_info.headers['Content-Type'],
+                item_id=video_id,
+                url=base_url + 'download?id=' + video_id,
+                title=extract(entry.css('title::text')),
+                description=extract(entry.css('group > description::text')),
+                date=dateutil.parser.parse(extract(entry.css('published::text'))),
+                image=extract(entry.css('group > thumbnail::attr(url)')),
+                content_type="video/mp4",
             ))
         return items
-
-    @lru_cache(maxsize=1)
-    def _get_youtube_client(self):
-        return discovery.build('youtube', 'v3', developerKey=os.environ['youtube_developer_key'])
 
 
 class PyTube(YouTubePlugin):
