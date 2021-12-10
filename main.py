@@ -1,7 +1,7 @@
 import requests
 from flask import Flask, request, Response, render_template, redirect, stream_with_context
 
-from feed import render_feed, get_channel_id
+from feed import render_feed
 from plugins.plugin_factory import PluginFactory
 
 
@@ -33,14 +33,6 @@ def download():
         return Response(stream_with_context(req.iter_content()), content_type=req.headers['content-type'])
     else:
         return redirect(url, code=302)
-
-
-@app.route('/', methods=['POST'])
-def getPersonById():
-    user_input = request.form['user_input']
-    channel_id = get_channel_id(user_input)
-    feed_url = request.host_url + '?c=' + channel_id if channel_id else ''
-    return feed_url
 
 
 @app.errorhandler(404)

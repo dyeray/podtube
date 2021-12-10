@@ -22,7 +22,7 @@ class IvooxPlugin(Plugin):
             title=extract(sel.css('#list_title_new::text')),
             description=extract(sel.css('.overview::text')),
             link=url,
-            image=extract(sel.css('.imagen-ficha img::attr(src)')),
+            image=extract(sel.css("meta[property='og:image']::attr(content)")),
             items=self._get_items(videos, base_url)
         )
 
@@ -43,7 +43,7 @@ class IvooxPlugin(Plugin):
             title=extract(item.css('.title-wrapper a::attr(title)')),
             description=extract(item.css('.title-wrapper button::attr(data-content)')),
             date=date,
-            image=extract(item.css('a img::attr(src)')),
+            image=extract(item.css('a img::attr(data-src)')),
             content_type='audio/mp4',
         )
 

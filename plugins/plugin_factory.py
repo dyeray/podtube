@@ -11,7 +11,7 @@ def get_plugin_from_settings():
         'YouTubeDL': YouTubeDL,
         'PyTube': PyTube,
     }
-    plugin_cls = name_to_class[os.environ['youtube_backend']]
+    plugin_cls = name_to_class[os.environ.get('youtube_backend', 'PyTube')]
     return plugin_cls()
 
 
