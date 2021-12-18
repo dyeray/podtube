@@ -1,8 +1,7 @@
 feedgen==0.9.0
 yt-dlp==2021.12.1
-flask==1.1.4
-gunicorn==19.9.0
-python-dateutil==2.8.0
+flask==2.0.2
+gunicorn==20.1.0
 pytube==11.0.1
 requests==2.22.0
 parsel==1.5.2

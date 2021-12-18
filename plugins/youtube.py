@@ -1,13 +1,12 @@
+from datetime import datetime
 from typing import List
 
-import dateutil.parser
 import requests
 from parsel import Selector, SelectorList
 from pytube import YouTube
 from pytube.exceptions import PytubeError
 from yt_dlp import YoutubeDL
 
-from scraper import extract
 from ytdl_config import ytdl_opts
 from model import PodcastItem, PodcastFeed
 from plugins.plugin import Plugin
@@ -35,14 +34,14 @@ class YouTubePlugin(Plugin):
     def _get_items(self, entries: SelectorList, base_url: str) -> List[PodcastItem]:
         items = []
         for entry in entries:
-            video_id = extract(entry.css('videoId::text'))
+            video_id = entry.css('videoId::text').get()
             items.append(PodcastItem(
                 item_id=video_id,
                 url=base_url + 'download?id=' + video_id,
-                title=extract(entry.css('title::text')),
-                description=extract(entry.css('group > description::text')),
-                date=dateutil.parser.parse(extract(entry.css('published::text'))),
-                image=extract(entry.css('group > thumbnail::attr(url)')),
+                title=entry.css('title::text').get(),
+                description=entry.css('group > description::text').get(),
+                date=datetime.fromisoformat(entry.css('published::text').get()),
+                image=entry.css('group > thumbnail::attr(url)').get(),
                 content_type="video/mp4",
             ))
         return items

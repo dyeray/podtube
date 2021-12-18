@@ -7,7 +7,6 @@ from parsel import Selector, SelectorList
 
 from model import PodcastFeed, PodcastItem
 from plugins.plugin import Plugin
-from scraper import extract
 
 
 class IvooxPlugin(Plugin):
@@ -19,10 +18,10 @@ class IvooxPlugin(Plugin):
         videos = sel.css('.modulo-type-episodio')
         return PodcastFeed(
             feed_id=feed_id,
-            title=extract(sel.css('#list_title_new::text')),
-            description=extract(sel.css('.overview::text')),
+            title=sel.css('#list_title_new::text').get(),
+            description=sel.css('.overview::text').get(),
             link=url,
-            image=extract(sel.css("meta[property='og:image']::attr(content)")),
+            image=sel.css("meta[property='og:image']::attr(content)").get(),
             items=self._get_items(videos, base_url)
         )
 
@@ -30,20 +29,20 @@ class IvooxPlugin(Plugin):
         return [self._get_item(item, base_url) for item in items]
 
     def _get_item(self, item: Selector, base_url: str) -> PodcastItem:
-        url = extract(item.css('.title-wrapper a::attr(href)'))
+        url = item.css('.title-wrapper a::attr(href)').get()
         re_item_id = re.match(r'https?://www\.ivoox\.com/([-_\w\d]+)\.html', url)
         item_id = re_item_id and re_item_id.group(1)
         date = dateparser.parse(
-            extract(item.css('.action .date::attr(title)')),
+            item.css('.action .date::attr(title)').get(),
             settings={'RETURN_AS_TIMEZONE_AWARE': True}
         )
         return PodcastItem(
             item_id=item_id,
             url=base_url + 'download?s=ivoox&id=' + item_id,
-            title=extract(item.css('.title-wrapper a::attr(title)')),
-            description=extract(item.css('.title-wrapper button::attr(data-content)')),
+            title=item.css('.title-wrapper a::attr(title)').get(),
+            description=item.css('.title-wrapper button::attr(data-content)').get() or '',
             date=date,
-            image=extract(item.css('a img::attr(data-src)')),
+            image=item.css('a img::attr(data-src)').get(),
             content_type='audio/mp4',
         )
 
