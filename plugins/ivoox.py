@@ -1,5 +1,6 @@
 import re
 from typing import List
+from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 
 import dateparser
 import requests
@@ -42,9 +43,18 @@ class IvooxPlugin(Plugin):
             title=item.css('.title-wrapper a::attr(title)').get(),
             description=item.css('.title-wrapper button::attr(data-content)').get() or '',
             date=date,
-            image=item.css('a img::attr(data-src)').get(),
+            image=self._get_episode_image(item),
             content_type='audio/mp4',
         )
+
+    def _get_episode_image(self, item: Selector):
+        image_url = item.css('a img::attr(data-src)').get()
+        if not image_url:
+            return
+        if image_url.endswith('.jpg') or image_url.endswith('.png'):
+            return image_url
+        match = re.match(r'.*url=(.*)\?ts=.*', image_url)
+        return match and match.group(1)
 
     def get_item_url(self, item_id):
         """Calculates the downloadable url of an item in the feed."""
