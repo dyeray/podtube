@@ -3,6 +3,7 @@ from functools import lru_cache
 
 from plugins.youtube import YouTubeDL, PyTube
 from plugins.ivoox import IvooxPlugin
+from plugins.invidious import InvidiousPlugin
 
 
 @lru_cache(maxsize=1)
@@ -19,7 +20,8 @@ class PluginFactory:
 
     plugins = {
         'youtube': get_plugin_from_settings,
-        'ivoox': IvooxPlugin
+        'ivoox': IvooxPlugin,
+        'invidious': InvidiousPlugin
     }
 
     @classmethod

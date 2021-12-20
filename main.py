@@ -14,7 +14,7 @@ def index():
     if not feed_id:
         return render_template('index.html')
     service = request.args.get('s')
-    feed_object = PluginFactory.create(service).get_feed(feed_id, request.host_url)
+    feed_object = PluginFactory.create(service).get_feed(feed_id, request.host_url, request.args)
     return Response(
         render_feed(feed_object),
         mimetype='application/rss+xml',

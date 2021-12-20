@@ -1,3 +1,4 @@
+from abc import ABC
 from datetime import datetime
 from typing import List
 
@@ -12,13 +13,13 @@ from model import PodcastItem, PodcastFeed
 from plugins.plugin import Plugin
 
 
-class YouTubePlugin(Plugin):
+class YouTubePlugin(Plugin, ABC):
 
-    def get_feed(self, feed_id, base_url):
+    def get_feed(self, feed_id, base_url, options: dict[str, str]):
         response = requests.get(f"https://www.youtube.com/feeds/videos.xml?channel_id={feed_id}")
         sel = Selector(response.text)
         entries = sel.css('feed > entry')
-        title = sel.css("feed > title").get()
+        title = sel.css("feed > title::text").get()
         return PodcastFeed(
             feed_id=feed_id,
             title=title,
@@ -28,30 +29,27 @@ class YouTubePlugin(Plugin):
             items=self._get_items(entries, base_url)
         )
 
-    def get_item_url(self, item_id):
-        return self.extract_link(f'https://www.youtube.com/watch?v={item_id}')
-
     def _get_items(self, entries: SelectorList, base_url: str) -> List[PodcastItem]:
-        items = []
-        for entry in entries:
-            video_id = entry.css('videoId::text').get()
-            items.append(PodcastItem(
-                item_id=video_id,
-                url=base_url + 'download?id=' + video_id,
-                title=entry.css('title::text').get(),
-                description=entry.css('group > description::text').get(),
-                date=datetime.fromisoformat(entry.css('published::text').get()),
-                image=entry.css('group > thumbnail::attr(url)').get(),
-                content_type="video/mp4",
-            ))
-        return items
+        return [self._get_item(entry, base_url) for entry in entries]
+
+    def _get_item(self, entry: Selector, base_url: str):
+        video_id = entry.css('videoId::text').get()
+        return PodcastItem(
+            item_id=video_id,
+            url=base_url + 'download?id=' + video_id,
+            title=entry.css('title::text').get(),
+            description=entry.css('group > description::text').get(),
+            date=datetime.fromisoformat(entry.css('published::text').get()),
+            image=entry.css('group > thumbnail::attr(url)').get(),
+            content_type="video/mp4",
+        )
 
 
 class PyTube(YouTubePlugin):
 
-    def extract_link(self, url):
+    def get_item_url(self, item_id):
         try:
-            return (YouTube(url).streams
+            return (YouTube(f'https://www.youtube.com/watch?v={item_id}').streams
                     .filter(progressive=True, subtype='mp4')
                     .order_by('resolution')
                     .desc()
@@ -64,9 +62,9 @@ class YouTubeDL(YouTubePlugin):
     def __init__(self):
         self.ytdl = YoutubeDL(ytdl_opts)
 
-    def extract_link(self, url):
+    def get_item_url(self, item_id):
         try:
-            return self.ytdl.extract_info(url, download=False)['url']
+            return self.ytdl.extract_info(f'https://www.youtube.com/watch?v={item_id}', download=False)['url']
         except Exception:
             raise PluginException
 

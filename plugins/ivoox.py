@@ -10,7 +10,7 @@ from plugins.plugin import Plugin
 
 
 class IvooxPlugin(Plugin):
-    def get_feed(self, feed_id, base_url):
+    def get_feed(self, feed_id, base_url, options: dict[str, str]):
         """Calculates and returns the subscribable feed."""
         url = f'https://www.ivoox.com/{feed_id}.html'
         response = requests.get(url)
@@ -48,10 +48,6 @@ class IvooxPlugin(Plugin):
 
     def get_item_url(self, item_id):
         """Calculates the downloadable url of an item in the feed."""
-        return self.extract_link(f'https://www.ivoox.com/{item_id}.html')
-
-    def extract_link(self, url):
-        """Calculates the downloadable url from the html url of an item."""
-        re_item_id = re.match(r'https?://www\.ivoox\.com/.*(_\d+_\d)\.html', url)
-        item_id = re_item_id and re_item_id.group(1)[1:]
-        return f'http://www.ivoox.com/listen_mn_{item_id}.m4a?internal=HTML5'
+        match = re.match(r'.*(_\d+_\d)', item_id)
+        podcast_id = match and match.group(1)[1:]
+        return f'http://www.ivoox.com/listen_mn_{podcast_id}.m4a?internal=HTML5'
