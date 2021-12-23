@@ -11,7 +11,7 @@ def render_feed(feed: PodcastFeed):
     fg.link(href=feed.link, rel='alternate')
     fg.image(feed.image)
     fg.id(feed.feed_id)
-    for item in feed.items:
+    for item in reversed(feed.items):
         fe = fg.add_entry()
         fe.id(item.item_id)
         fe.title(item.title)

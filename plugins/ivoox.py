@@ -41,7 +41,7 @@ class IvooxPlugin(Plugin):
             item_id=item_id,
             url=base_url + 'download?s=ivoox&id=' + item_id,
             title=item.css('.title-wrapper a::attr(title)').get(),
-            description=item.css('.title-wrapper button::attr(data-content)').get() or '',
+            description=item.css('.audio-description button::attr(data-content)').get() or '',
             date=date,
             image=self._get_episode_image(item),
             content_type='audio/mp4',

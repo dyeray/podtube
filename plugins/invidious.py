@@ -10,7 +10,7 @@ from plugins.plugin import Plugin
 class InvidiousPlugin(Plugin):
     def get_feed(self, feed_id, base_url, options: dict[str, str]):
         domain = options.get('domain', 'yewtu.be')
-        response = requests.get(f"https://yewtu.be/feed/channel/{feed_id}")
+        response = requests.get(f"https://{domain}/feed/channel/{feed_id}")
         sel = Selector(response.text)
         title = sel.css('feed > title::text').get()
         return PodcastFeed(
