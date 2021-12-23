@@ -3,7 +3,7 @@ from feedgen.feed import FeedGenerator
 from model import PodcastFeed
 
 
-def render_feed(feed: PodcastFeed):
+def render_feed(feed: PodcastFeed, format: str):
     fg = FeedGenerator()
     fg.load_extension('podcast')
     fg.title(feed.title)
@@ -19,4 +19,4 @@ def render_feed(feed: PodcastFeed):
         fe.pubDate(item.date)
         fe.podcast.itunes_image(item.image)
         fe.enclosure(item.url, item.content_length, item.content_type)
-    return fg.atom_str(pretty=True)
+    return fg.rss_str(pretty=True) if format == 'rss' else fg.atom_str(pretty=True)

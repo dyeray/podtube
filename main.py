@@ -11,12 +11,13 @@ app = Flask(__name__)
 @app.route('/')
 def index():
     feed_id = request.args.get('c')
+    format = request.args.get('format', 'rss')
     if not feed_id:
         return render_template('index.html')
     service = request.args.get('s')
     feed_object = PluginFactory.create(service).get_feed(feed_id, request.host_url, request.args)
     return Response(
-        render_feed(feed_object),
+        render_feed(feed_object, format),
         mimetype='application/rss+xml',
         content_type='text/xml'
     )
