@@ -23,7 +23,7 @@ class InvidiousPlugin(Plugin):
         )
 
     def get_item_url(self, item_id):
-        domain, yt_id = item_id.split('-')
+        domain, yt_id = item_id.split('-', 1)
         return f'https://{domain}/latest_version?id={yt_id}&itag=18&local=true'
 
     def _get_items(self, entries: SelectorList, base_url: str, domain: str) -> list[PodcastItem]:
