@@ -1,6 +1,6 @@
 from feedgen.feed import FeedGenerator
 
-from model import PodcastFeed
+from core.model import PodcastFeed
 
 
 def render_feed(feed: PodcastFeed, format: str):

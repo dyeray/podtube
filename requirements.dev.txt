@@ -1,0 +1,4 @@
+pytest
+pytest-responses
+nextmock
+pytest-mock

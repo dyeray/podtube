@@ -1,12 +1,12 @@
 import re
 from typing import List
-from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 
 import dateparser
 import requests
 from parsel import Selector, SelectorList
 
-from model import PodcastFeed, PodcastItem
+from core.model import PodcastFeed, PodcastItem
+from core.scrape_utils import clean
 from plugins.plugin import Plugin
 
 
@@ -19,8 +19,8 @@ class IvooxPlugin(Plugin):
         videos = sel.css('.modulo-type-episodio')
         return PodcastFeed(
             feed_id=feed_id,
-            title=sel.css('#list_title_new::text').get(),
-            description=sel.css('.overview::text').get(),
+            title=clean(sel.css('#list_title_new::text').get()),
+            description=clean(sel.css('.overview::text').get()),
             link=url,
             image=sel.css("meta[property='og:image']::attr(content)").get(),
             items=self._get_items(videos, base_url)
@@ -35,7 +35,7 @@ class IvooxPlugin(Plugin):
         item_id = re_item_id and re_item_id.group(1)
         date = dateparser.parse(
             item.css('.action .date::attr(title)').get(),
-            settings={'RETURN_AS_TIMEZONE_AWARE': True}
+            settings={'RETURN_AS_TIMEZONE_AWARE': True, 'TO_TIMEZONE': 'UTC'}
         )
         return PodcastItem(
             item_id=item_id,

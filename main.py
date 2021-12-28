@@ -1,7 +1,7 @@
 import requests
 from flask import Flask, request, Response, render_template, redirect, stream_with_context
 
-from feed import render_feed
+from core.feed import render_feed
 from plugins.plugin_factory import PluginFactory
 
 

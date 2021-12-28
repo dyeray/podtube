@@ -3,7 +3,7 @@ from datetime import datetime
 import requests
 from parsel import Selector, SelectorList
 
-from model import PodcastItem, PodcastFeed
+from core.model import PodcastItem, PodcastFeed
 from plugins.plugin import Plugin
 
 

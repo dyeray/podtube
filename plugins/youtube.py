@@ -9,7 +9,7 @@ from pytube.exceptions import PytubeError
 from yt_dlp import YoutubeDL
 
 from ytdl_config import ytdl_opts
-from model import PodcastItem, PodcastFeed
+from core.model import PodcastItem, PodcastFeed
 from plugins.plugin import Plugin
 
 
