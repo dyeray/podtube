@@ -2,7 +2,7 @@ import datetime
 
 import responses
 
-from plugins.ivoox import IvooxPlugin
+from plugins.ivoox import PluginImpl
 
 
 def test_get_feed(utils):
@@ -11,8 +11,8 @@ def test_get_feed(utils):
     expected_url = f'https://www.ivoox.com/{channel_id}.html'
     responses.add(responses.GET, expected_url, body=utils.get_fixture('ivoox.html'), status=200, content_type='text/html; charset=UTF-8')
 
-    ivoox_plugin = IvooxPlugin()
-    feed = ivoox_plugin.get_feed(channel_id, base_url, {})
+    plugin = PluginImpl()
+    feed = plugin.get_feed(channel_id, base_url, {})
     episode = feed.items[0]
 
     assert feed.feed_id == channel_id

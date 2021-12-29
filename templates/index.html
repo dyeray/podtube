@@ -10,5 +10,51 @@
       }
     </style>
     <h1>podtube</h1>
+    <p>
+      Podtube generates feeds with direct link to media so you can subscribe to online platforms directly from a podcatcher like AntennaPod.
+      Currently supported services:
+    </p>
+    <ul>
+      <li>YouTube</li>
+      <li>Invidious</li>
+      <li>iVoox Originals</li>
+    </ul>
+    <h2>Instructions</h2>
+    <p>
+      You must build a url to your channel/podcast. The url must be built like **{{host_url}}/feed?[PARAMETERS]**.
+      The currently supported parameters are:
+    </p>
+    <h3>service (required)</h3>
+    <p>
+      Name of the service that is going to be used. It's the name of one of the plugins on plugins folder (currently invidious, ivoox or youtube)<br/>
+    </p>
+    <h3>id (required)</h3>
+    <p>
+      Identifier of the channel/podcast that you want the feed from. For YouTube/Invidious it is the channel id. For iVoox it is the podcast url without domain or .html.
+      Examples:<br/><br/>
+      * https://www.youtube.com/channel/UC2bkHVIDjXS7sgrgjFtzOXQ -> UC2bkHVIDjXS7sgrgjFtzOXQ<br/>
+      * https://www.ivoox.com/podcast-cuarto-milenio-oficial_sq_f17162_1.html -> podcast-cuarto-milenio-oficial_sq_f17162_1<br/>
+    </p>
+    <h3>format</h3>
+    <p>Output format of the feed. Accepted values are rss and atom. The default value is rss.</p>
+    <h3>proxy_url</h3>
+    <p>
+      Whether the feed will contain urls that point directly to the files on the original services, or if it points to podtube so the final urls are generated on the fly.
+      Values can be True or False. The default value is True.
+      There may be some services that use temporary urls, like YouTube. Also take into account that generating the final url may be a slow process, so only disable this option if you know what you are doing.
+    </p>
+  <h3>proxy_download</h3>
+  <p>
+    In order for this option to make sense, the proxy_url option must be set to True. Values can be True or False. The default value is False.
+    If False, the download endpoint will redirect to the download link on the original service. If true, podtube will stream the file acting as a proxy.
+    This option is provided just in case the service forces that the same IP that generates the download link is the only one with permissions to download.
+    Note that this option may not work on PaaS like Heroku, as long requests are usually not allowed there.
+  </p>
+
+  <h2>Examples</h2>
+
+    <a href="{{host_url}}feed?id=UCHnyfMqiRRG1u-2MsSQLbXA&service=youtube">{{host_url}}feed?id=UCHnyfMqiRRG1u-2MsSQLbXA&service=youtube</a><br/>
+    <a href="{{host_url}}feed?id=UCtESv1e7ntJaLJYKIO1FoYw&service=invidious">{{host_url}}feed?id=UCtESv1e7ntJaLJYKIO1FoYw&service=invidious</a><br/>
+    <a href="{{host_url}}feed?id=podcast-danko_sq_f11313_1&service=ivoox">{{host_url}}feed?id=podcast-danko_sq_f11313_1&service=ivoox</a><br/>
   </body>
 </html>

@@ -2,7 +2,7 @@ import datetime
 
 import responses
 
-from plugins.youtube import PyTube, YouTubeDL
+from plugins.youtube import PluginImpl
 
 
 def test_get_feed(utils):
@@ -12,7 +12,7 @@ def test_get_feed(utils):
     responses.add(responses.GET, expected_url, body=utils.get_fixture('youtube.xml'), status=200, content_type='text/xml; charset=UTF-8')
     expected_episode_id = 'Elewn679CZI'
 
-    plugin = PyTube()
+    plugin = PluginImpl()
     feed = plugin.get_feed(channel_id, base_url, {})
     episode = feed.items[0]
     assert feed.feed_id == channel_id

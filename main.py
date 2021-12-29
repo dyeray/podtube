@@ -2,7 +2,8 @@ import requests
 from flask import Flask, request, Response, render_template, redirect, stream_with_context
 
 from core.feed import render_feed
-from plugins.plugin_factory import PluginFactory
+from core.options import Options
+from core.plugin.plugin_factory import PluginFactory
 
 
 app = Flask(__name__)
@@ -10,14 +11,15 @@ app = Flask(__name__)
 
 @app.route('/')
 def index():
-    feed_id = request.args.get('c')
-    format = request.args.get('format', 'rss')
-    if not feed_id:
-        return render_template('index.html')
-    service = request.args.get('s')
-    feed_object = PluginFactory.create(service).get_feed(feed_id, request.host_url, request.args)
+    return render_template('index.html', host_url=request.host_url)
+
+
+@app.route('/feed')
+def feed():
+    options = Options(**request.args)
+    feed_generator = PluginFactory.create(options.service, request.args)
     return Response(
-        render_feed(feed_object, format),
+        render_feed(options.id, feed_generator, options, request.host_url),
         mimetype='application/rss+xml',
         content_type='text/xml'
     )
@@ -25,11 +27,9 @@ def index():
 
 @app.route('/download')
 def download():
-    item_id = request.args.get('id')
-    service = request.args.get('s')
-    proxy = request.args.get('proxy') or False
-    url = PluginFactory.create(service).get_item_url(item_id)
-    if proxy:
+    options = Options(**request.args)
+    url = PluginFactory.create(options.service, request.args).get_item_url(options.id)
+    if options.proxy_download:
         req = requests.get(url, stream=True)
         return Response(stream_with_context(req.iter_content()), content_type=req.headers['content-type'])
     else:

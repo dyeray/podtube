@@ -6,3 +6,4 @@ pytube==11.0.2
 requests==2.26.0
 parsel==1.6.0
 dateparser==1.1.0
+pydantic==1.8.2
