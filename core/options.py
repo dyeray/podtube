@@ -1,7 +1,9 @@
 from pydantic import BaseModel
 
+Options = BaseModel
 
-class Options(BaseModel):
+
+class GlobalOptions(Options):
     service: str
     id: str
     format = 'rss'

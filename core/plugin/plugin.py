@@ -1,12 +1,15 @@
 import abc
 
 from core.model import PodcastFeed
+from core.options import Options, GlobalOptions
 
 
 class Plugin(abc.ABC):
 
+    PluginOptions = Options  # Redefine the PluginOptions class on a a plugin to set the specific plugin options.
+
     def __init__(self, options: dict[str, str]):
-        self.options = options
+        self.options = self.PluginOptions(**options)
 
     @abc.abstractmethod
     def get_feed(self, feed_id: str) -> PodcastFeed:

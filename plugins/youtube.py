@@ -7,6 +7,7 @@ from pytube import YouTube
 from pytube.exceptions import PytubeError
 from yt_dlp import YoutubeDL
 
+from core.options import Options
 from ytdl_config import ytdl_opts
 from core.model import PodcastItem, PodcastFeed
 from core.exceptions import PluginError, InputError
@@ -14,6 +15,10 @@ from core.plugin.plugin import Plugin
 
 
 class PluginImpl(Plugin):
+
+    class PluginOptions(Options):
+        library = 'pytube'
+    options: PluginOptions
 
     def get_feed(self, feed_id):
         response = requests.get(f"https://www.youtube.com/feeds/videos.xml?channel_id={feed_id}")
@@ -30,7 +35,7 @@ class PluginImpl(Plugin):
         )
 
     def get_item_url(self, item_id):
-        match self.options.get('plugin.library', 'pytube'):
+        match self.options.library:
             case 'yt-dlp':
                 return YtDlpResolver().get_url(item_id)
             case 'pytube':

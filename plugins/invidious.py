@@ -4,27 +4,30 @@ import requests
 from parsel import Selector, SelectorList
 
 from core.model import PodcastItem, PodcastFeed
+from core.options import Options
 from core.plugin.plugin import Plugin
 
 
 class PluginImpl(Plugin):
+    class PluginOptions(Options):
+        domain = 'invidious.namazso.eu'
+    options: PluginOptions
+
     def get_feed(self, feed_id):
-        domain = self.options.get('plugin.domain', 'invidious.namazso.eu')
-        response = requests.get(f"https://{domain}/feed/channel/{feed_id}")
+        response = requests.get(f"https://{self.options.domain}/feed/channel/{feed_id}")
         sel = Selector(response.text)
         title = sel.css('feed > title::text').get()
         return PodcastFeed(
             feed_id=feed_id,
             title=title,
             description=title,
-            link=f'https://{domain}/channel/{feed_id}',
+            link=f'https://{self.options.domain}/channel/{feed_id}',
             image=sel.css('feed > icon::text').get(),
             items=self._get_items(sel.css('feed > entry'))
         )
 
     def get_item_url(self, item_id):
-        domain = self.options.get('plugin.domain', 'invidious.namazso.eu')
-        return f'https://{domain}/latest_version?id={item_id}&itag=18&local=true'
+        return f'https://{self.options.domain}/latest_version?id={item_id}&itag=18&local=true'
 
     def _get_items(self, entries: SelectorList) -> list[PodcastItem]:
         return [self._get_item(entry) for entry in entries]
