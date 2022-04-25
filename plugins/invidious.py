@@ -4,27 +4,40 @@ import requests
 from parsel import Selector, SelectorList
 
 from core.model import PodcastItem, PodcastFeed
-from core.options import Options
+from core.options import Options, Choice
 from core.plugin.plugin import Plugin
+
+
+class FeedType(Choice):
+    channel = 'channel'
+    playlist = 'playlist'
 
 
 class PluginImpl(Plugin):
     class PluginOptions(Options):
         domain = 'invidious.namazso.eu'
+        feed_type: FeedType = 'channel'
     options: PluginOptions
 
     def get_feed(self, feed_id):
-        response = requests.get(f"https://{self.options.domain}/feed/channel/{feed_id}")
+        response = requests.get(f"https://{self.options.domain}/feed/{self.options.feed_type}/{feed_id}")
         sel = Selector(response.text)
         title = sel.css('feed > title::text').get()
         return PodcastFeed(
             feed_id=feed_id,
             title=title,
             description=title,
-            link=f'https://{self.options.domain}/channel/{feed_id}',
-            image=sel.css('feed > icon::text').get(),
+            link=self._get_feed_link(feed_id),
+            image=sel.css('feed > icon::text').get() or '',
             items=self._get_items(sel.css('feed > entry'))
         )
+
+    def _get_feed_link(self, feed_id):
+        match self.options.feed_type:
+            case FeedType.channel:
+                return f'https://{self.options.domain}/channel/{feed_id}'
+            case FeedType.playlist:
+                return f'https://{self.options.domain}/playlist?list={feed_id}'
 
     def get_item_url(self, item_id):
         return f'https://{self.options.domain}/latest_version?id={item_id}&itag=18&local=true'
