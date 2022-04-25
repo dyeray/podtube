@@ -7,17 +7,22 @@ from pytube import YouTube
 from pytube.exceptions import PytubeError
 from yt_dlp import YoutubeDL
 
-from core.options import Options
+from core.options import Options, Choice
 from ytdl_config import ytdl_opts
 from core.model import PodcastItem, PodcastFeed
 from core.exceptions import PluginError, InputError
 from core.plugin.plugin import Plugin
 
 
+class YoutubeLibrary(Choice):
+    pytube = "pytube"
+    yt_dlp = "yt-dlp"
+
+
 class PluginImpl(Plugin):
 
     class PluginOptions(Options):
-        library = 'pytube'
+        library: YoutubeLibrary = 'yt-dlp'
     options: PluginOptions
 
     def get_feed(self, feed_id):
@@ -36,12 +41,10 @@ class PluginImpl(Plugin):
 
     def get_item_url(self, item_id):
         match self.options.library:
-            case 'yt-dlp':
+            case YoutubeLibrary.yt_dlp:
                 return YtDlpResolver().get_url(item_id)
-            case 'pytube':
+            case YoutubeLibrary.pytube:
                 return PyTubeResolver().get_url(item_id)
-            case _:
-                raise InputError('Invalid youtube library defined')
 
     def _get_items(self, entries: SelectorList) -> List[PodcastItem]:
         return [self._get_item(entry) for entry in entries]
