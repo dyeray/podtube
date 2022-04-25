@@ -10,7 +10,6 @@ class PodcastItem:
     description: str
     date: datetime
     image: str
-    url: str
     content_type: str
     content_length: Optional[str] = None
 
