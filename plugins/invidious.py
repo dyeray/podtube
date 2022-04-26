@@ -12,6 +12,9 @@ class FeedType(Choice):
     channel = 'channel'
     playlist = 'playlist'
 
+    def __str__(self):
+        return self.value
+
 
 class PluginImpl(Plugin):
     class PluginOptions(Options):
