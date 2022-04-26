@@ -14,7 +14,7 @@ def render_feed(feed_id: str, plugin: Plugin, options: GlobalOptions, base_url: 
     fg.title(feed.title)
     fg.description(feed.description)
     fg.link(href=feed.link, rel='alternate')
-    fg.image(feed.image)
+    fg.image(options.icon or feed.image)
     fg.id(feed.feed_id)
     for item in reversed(feed.items):
         fe = fg.add_entry()

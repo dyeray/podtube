@@ -16,6 +16,7 @@ class GlobalOptions(Options):
     format: FeedFormat = 'rss'
     proxy_url = True
     proxy_download = False
+    icon: str = None
 
 
 class Choice(str, Enum):
