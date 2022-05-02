@@ -5,12 +5,12 @@ import dateparser
 import feedparser
 
 from core.model import PodcastFeed, PodcastItem
-from core.plugin.plugin import Plugin
+from core.service.service import Service
 from core.utils import first
 from core.scrape_utils import clean_image_url
 
 
-class PluginImpl(Plugin):
+class ServiceImpl(Service):
     def get_feed(self, feed_id):
         """Calculates and returns the subscribable feed."""
         parsed_dict = feedparser.parse(feed_id)

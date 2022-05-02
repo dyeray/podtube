@@ -1,7 +1,7 @@
 
 
-class PluginError(Exception):
-    """The plugin was not able to provide the feed due to an internal error"""
+class ServiceError(Exception):
+    """The service was not able to provide the feed due to an internal error"""
 
 
 class InputError(Exception):

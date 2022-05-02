@@ -7,10 +7,10 @@ from parsel import Selector, SelectorList
 
 from core.model import PodcastFeed, PodcastItem
 from core.scrape_utils import clean, clean_image_url
-from core.plugin.plugin import Plugin
+from core.service.service import Service
 
 
-class PluginImpl(Plugin):
+class ServiceImpl(Service):
     def get_feed(self, feed_id):
         """Calculates and returns the subscribable feed."""
         url = f'https://www.ivoox.com/{feed_id}.html'

@@ -10,8 +10,8 @@ from yt_dlp import YoutubeDL
 from core.options import Options, Choice
 from ytdl_config import ytdl_opts
 from core.model import PodcastItem, PodcastFeed
-from core.exceptions import PluginError, InputError
-from core.plugin.plugin import Plugin
+from core.exceptions import ServiceError, InputError
+from core.service.service import Service
 
 
 class YoutubeLibrary(Choice):
@@ -19,11 +19,11 @@ class YoutubeLibrary(Choice):
     yt_dlp = "yt-dlp"
 
 
-class PluginImpl(Plugin):
+class ServiceImpl(Service):
 
-    class PluginOptions(Options):
+    class ServiceOptions(Options):
         library: YoutubeLibrary = 'yt-dlp'
-    options: PluginOptions
+    options: ServiceOptions
 
     def get_feed(self, feed_id):
         response = requests.get(f"https://www.youtube.com/feeds/videos.xml?channel_id={feed_id}")
@@ -71,7 +71,7 @@ class PyTubeResolver:
                     .desc()
                     .all()[0].url)
         except PytubeError as ex:
-            raise PluginError(ex)
+            raise ServiceError(ex)
 
 
 class YtDlpResolver:
@@ -82,4 +82,4 @@ class YtDlpResolver:
         try:
             return self.ytdl.extract_info(f'https://www.youtube.com/watch?v={video_id}', download=False)['url']
         except Exception as ex:
-            raise PluginError(ex)
+            raise ServiceError(ex)

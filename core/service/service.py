@@ -4,13 +4,13 @@ from core.model import PodcastFeed
 from core.options import Options, GlobalOptions
 
 
-class Plugin(abc.ABC):
+class Service(abc.ABC):
 
     GlobalOptions = GlobalOptions
-    PluginOptions = Options  # Redefine the PluginOptions class on a plugin to set the specific plugin options.
+    ServiceOptions = Options  # Redefine the ServiceOptions class on a service to set the specific service options.
 
     def __init__(self, options: dict[str, str]):
-        self.options = self.PluginOptions(**options)
+        self.options = self.ServiceOptions(**options)
 
     @abc.abstractmethod
     def get_feed(self, feed_id: str) -> PodcastFeed:

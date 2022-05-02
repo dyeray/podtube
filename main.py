@@ -3,7 +3,7 @@ from flask import Flask, request, Response, render_template, redirect, stream_wi
 
 from core.feed import render_feed
 from core.options import GlobalOptions
-from core.plugin.plugin_factory import PluginFactory
+from core.service.service_factory import ServiceFactory
 
 
 app = Flask(__name__)
@@ -17,7 +17,7 @@ def index():
 @app.route('/feed')
 def feed():
     options = GlobalOptions(**request.args)
-    feed_generator = PluginFactory.create(options.service, request.args)
+    feed_generator = ServiceFactory.create(options.service, request.args)
     return Response(
         render_feed(options.id, feed_generator, options, request.host_url),
         mimetype='application/rss+xml',
@@ -28,7 +28,7 @@ def feed():
 @app.route('/download')
 def download():
     options = GlobalOptions(**request.args)
-    url = PluginFactory.create(options.service, request.args).get_item_url(options.id)
+    url = ServiceFactory.create(options.service, request.args).get_item_url(options.id)
     if options.proxy_download:
         req = requests.get(url, stream=True)
         return Response(stream_with_context(req.iter_content()), content_type=req.headers['content-type'])

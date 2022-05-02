@@ -5,7 +5,7 @@ from parsel import Selector, SelectorList
 
 from core.model import PodcastItem, PodcastFeed
 from core.options import Options, Choice
-from core.plugin.plugin import Plugin
+from core.service.service import Service
 
 
 class FeedType(Choice):
@@ -16,11 +16,11 @@ class FeedType(Choice):
         return self.value
 
 
-class PluginImpl(Plugin):
-    class PluginOptions(Options):
+class ServiceImpl(Service):
+    class ServiceOptions(Options):
         domain = 'invidious.namazso.eu'
         feed_type: FeedType = 'channel'
-    options: PluginOptions
+    options: ServiceOptions
 
     def get_feed(self, feed_id):
         response = requests.get(f"https://{self.options.domain}/feed/{self.options.feed_type}/{feed_id}")

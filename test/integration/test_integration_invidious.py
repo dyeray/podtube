@@ -2,7 +2,7 @@ import datetime
 
 import responses
 
-from plugins.invidious import PluginImpl
+from plugins.invidious import ServiceImpl
 
 
 def test_get_feed_channel(utils):
@@ -11,8 +11,8 @@ def test_get_feed_channel(utils):
     responses.add(responses.GET, expected_url, body=utils.get_fixture('invidious_channel.xml'), status=200, content_type='text/xml; charset=UTF-8')
     expected_episode_id = 'dpkt5MmlWZY'
 
-    plugin = PluginImpl({})
-    feed = plugin.get_feed(channel_id)
+    service = ServiceImpl({})
+    feed = service.get_feed(channel_id)
     episode = feed.items[0]
     assert feed.feed_id == channel_id
     assert feed.title == 'Instituto de Física Teórica IFT'
@@ -34,8 +34,8 @@ def test_get_feed_playlist(utils):
     responses.add(responses.GET, expected_url, body=utils.get_fixture('invidious_playlist.xml'), status=200, content_type='text/xml; charset=UTF-8')
     expected_episode_id = '97L58ya1qu8'
 
-    plugin = PluginImpl({'feed_type': 'playlist'})
-    feed = plugin.get_feed(playlist_id)
+    service = ServiceImpl({'feed_type': 'playlist'})
+    feed = service.get_feed(playlist_id)
     episode = feed.items[0]
     assert feed.feed_id == playlist_id
     assert feed.title == 'Laberinto de papel'
