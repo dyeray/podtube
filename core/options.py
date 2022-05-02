@@ -17,6 +17,7 @@ class GlobalOptions(Options):
     proxy_url = True
     proxy_download = False
     icon: str = None
+    alt_feed: str = None
 
 
 class Choice(str, Enum):

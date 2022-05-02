@@ -15,9 +15,10 @@
       Currently supported services:
     </p>
     <ul>
-      <li>YouTube</li>
-      <li>Invidious</li>
-      <li>iVoox Originals</li>
+      <li>YouTube</li>: Supports YouTube channels.
+      <li>Invidious</li>: Supports YouTube channels/playlist by using an Invidious instance.
+      <li>iVoox Originals</li>: Supports iVoox Originals (i.e. podcast that do not provide full RSS feeds and require use of app).
+      <li>Standard Feed (RSS, Atom)</li>: Supports standard feed as input. It doesn't make much sense to use this plugin by itself, but the idea is to allow in the future to merge several sources into one, so support for a feed input may be useful.
     </ul>
     <h2>Instructions</h2>
     <p>
@@ -50,11 +51,22 @@
     This option is provided just in case the service forces that the same IP that generates the download link is the only one with permissions to download.
     Note that this option may not work on PaaS like Heroku, as long requests are usually not allowed there.
   </p>
+  <h3>icon</h3>
+  <p>
+    Allow to override the feed image. Useful for inputs that do not provide a feed image. For example, for YouTube playlist through Invidious.
+  </p>
+  <h3>alt_feed</h3>
+  <p>
+    Allows defining an atom or RSS feed as a secondary source. The podcast entries of this feed will be added to the output podcast.
+    In the future this will probably be replaced with a more advanced feature that allows to merge several sources of any type (YouTube, iVoox, etc.) into one feed.
+  </p>
 
   <h2>Examples</h2>
 
     <a href="{{host_url}}feed?id=UCHnyfMqiRRG1u-2MsSQLbXA&service=youtube">{{host_url}}feed?id=UCHnyfMqiRRG1u-2MsSQLbXA&service=youtube</a><br/>
     <a href="{{host_url}}feed?id=UCtESv1e7ntJaLJYKIO1FoYw&service=invidious">{{host_url}}feed?id=UCtESv1e7ntJaLJYKIO1FoYw&service=invidious</a><br/>
     <a href="{{host_url}}feed?id=podcast-danko_sq_f11313_1&service=ivoox">{{host_url}}feed?id=podcast-danko_sq_f11313_1&service=ivoox</a><br/>
+    <a href="{{host_url}}feed?id=https%3A//www.ivoox.com/feed_fg_f1126491_filtro_1.xml&service=feed">{{host_url}}feed?id=https%3A//www.ivoox.com/feed_fg_f1126491_filtro_1.xml&service=feed</a><br/>
+    <a href="{{host_url}}feed?id=PLH3mdhuA3a24qt8c7fgcbknrLqe5Ijia2&service=invidious&feed_type=playlist">{{host_url}}feed?id=PLH3mdhuA3a24qt8c7fgcbknrLqe5Ijia2&service=invidious&feed_type=playlist</a><br/>
   </body>
 </html>

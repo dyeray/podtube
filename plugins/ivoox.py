@@ -6,7 +6,7 @@ import requests
 from parsel import Selector, SelectorList
 
 from core.model import PodcastFeed, PodcastItem
-from core.scrape_utils import clean
+from core.scrape_utils import clean, clean_image_url
 from core.plugin.plugin import Plugin
 
 
@@ -54,9 +54,4 @@ class PluginImpl(Plugin):
 
     def _get_episode_image(self, item: Selector):
         image_url = item.css('a img::attr(data-src)').get()
-        if not image_url:
-            return
-        if image_url.endswith('.jpg') or image_url.endswith('.png'):
-            return image_url
-        match = re.match(r'.*url=(.*)\?ts=.*', image_url)
-        return match and match.group(1)
+        return clean_image_url(image_url)

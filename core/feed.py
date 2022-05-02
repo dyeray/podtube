@@ -7,7 +7,8 @@ from core.options import GlobalOptions
 from core.plugin import Plugin
 
 
-def render_feed(feed_id: str, plugin: Plugin, options: GlobalOptions, base_url: str):
+def render_feed(feed_id: str, plugins: list[Plugin], options: GlobalOptions, base_url: str):
+    plugin = plugins[0]
     feed = plugin.get_feed(feed_id)
     fg = FeedGenerator()
     fg.load_extension('podcast')
