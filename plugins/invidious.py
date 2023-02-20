@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 
 import requests
@@ -18,7 +19,7 @@ class FeedType(Choice):
 
 class PluginImpl(Plugin):
     class PluginOptions(Options):
-        domain = 'invidious.namazso.eu'
+        domain = os.getenv('INVIDIOUS_DOMAIN')
         feed_type: FeedType = 'channel'
     options: PluginOptions
 
