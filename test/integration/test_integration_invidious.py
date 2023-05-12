@@ -5,7 +5,8 @@ import responses
 from plugins.invidious import PluginImpl
 
 
-def test_get_feed_channel(utils):
+def test_get_feed_channel(utils, monkeypatch):
+    monkeypatch.setenv('INVIDIOUS_DOMAIN', 'invidious.namazso.eu')
     channel_id = 'UCk195x4zYdMx4LhqEwhcPng'
     expected_url = f'https://invidious.namazso.eu/feed/channel/{channel_id}'
     responses.add(responses.GET, expected_url, body=utils.get_fixture('invidious_channel.xml'), status=200, content_type='text/xml; charset=UTF-8')
@@ -28,7 +29,8 @@ def test_get_feed_channel(utils):
     assert episode.date.date() == datetime.date(2022, 4, 21)
 
 
-def test_get_feed_playlist(utils):
+def test_get_feed_playlist(utils, monkeypatch):
+    monkeypatch.setenv('INVIDIOUS_DOMAIN', 'invidious.namazso.eu')
     playlist_id = 'PLH3mdhuA3a24qt8c7fgcbknrLqe5Ijia2'
     expected_url = f'https://invidious.namazso.eu/feed/playlist/{playlist_id}'
     responses.add(responses.GET, expected_url, body=utils.get_fixture('invidious_playlist.xml'), status=200, content_type='text/xml; charset=UTF-8')
