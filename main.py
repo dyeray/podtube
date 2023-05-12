@@ -36,6 +36,11 @@ def download():
         return redirect(url, code=302)
 
 
+@app.route('/health-check')
+def health_check():
+    return 'OK'
+
+
 @app.errorhandler(404)
 def page_not_found(e):
     return 'Sorry, Nothing at this URL.', 404
