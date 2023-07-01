@@ -1,3 +1,4 @@
+import os
 import requests
 from flask import Flask, request, Response, render_template, redirect, stream_with_context
 
@@ -34,6 +35,11 @@ def download():
         return Response(stream_with_context(req.iter_content()), content_type=req.headers['content-type'])
     else:
         return redirect(url, code=302)
+
+
+@app.route("/redirect/<path:path>")
+def proxy(path):
+    return redirect('https://' + os.getenv('REDIRECT_DOMAIN') + "/" + path, code=302)
 
 
 @app.route('/health-check')
