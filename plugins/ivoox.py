@@ -17,6 +17,13 @@ class PluginImpl(Plugin):
         response = requests.get(url)
         sel = Selector(response.text)
         videos = sel.css('.modulo-type-episodio')
+        while True:
+            next_page_url = sel.css('.pagination li:last-child a::attr(href)').get()
+            if next_page_url == '#':
+                break
+            response = requests.get(next_page_url)
+            sel = Selector(response.text)
+            videos.extend(sel.css('.modulo-type-episodio'))
         return PodcastFeed(
             feed_id=feed_id,
             title=clean(sel.css('#list_title_new::text').get()),
