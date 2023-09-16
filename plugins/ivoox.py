@@ -1,5 +1,5 @@
 import re
-from typing import List
+from typing import List, Union
 
 import dateparser
 import requests
@@ -40,9 +40,12 @@ class PluginImpl(Plugin):
         return f'http://www.ivoox.com/listen_mn_{podcast_id}.m4a?internal=HTML5'
 
     def _get_items(self, items: SelectorList) -> List[PodcastItem]:
-        return [self._get_item(item) for item in items]
+        return [item for item in (self._get_item(item) for item in items) if item is not None]
 
-    def _get_item(self, item: Selector) -> PodcastItem:
+    def _get_item(self, item: Selector) -> Union[PodcastItem, None]:
+        has_support_badge = item.css('.title-wrapper span.fan-title').get() != None
+        if has_support_badge == True:
+            return None
         url = item.css('.title-wrapper a::attr(href)').get()
         re_item_id = re.match(r'https?://www\.ivoox\.com/([-_\w\d]+)\.html', url)
         item_id = re_item_id and re_item_id.group(1)
