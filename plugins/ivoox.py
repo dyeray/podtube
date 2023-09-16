@@ -6,18 +6,25 @@ import requests
 from parsel import Selector, SelectorList
 
 from core.model import PodcastFeed, PodcastItem
+from core.options import Options
 from core.scrape_utils import clean
 from core.plugin.plugin import Plugin
 
 
 class PluginImpl(Plugin):
+    class PluginOptions(Options):
+        max_pagination: int = 1
+    options: PluginOptions
+
     def get_feed(self, feed_id):
         """Calculates and returns the subscribable feed."""
         url = f'https://www.ivoox.com/{feed_id}.html'
         response = requests.get(url)
         sel = Selector(response.text)
         videos = sel.css('.modulo-type-episodio')
-        while True:
+        current_page = 1
+        while current_page < self.options.max_pagination:
+            current_page += 1
             next_page_url = sel.css('.pagination li:last-child a::attr(href)').get()
             if next_page_url == '#':
                 break
