@@ -19,7 +19,7 @@ def test_get_feed(utils):
     assert feed.title == 'Campamento Krypton'
     assert feed.description == 'Un podcast donde la cultura pop brilla, burbujea y se alborota. Monográficos y entrevistas sobre cine, cómic, música, empanadillas y Lina Morgan. Organizadores y creadores de la Monstrua de Cine Chungo, también podías escucharnos en Efecto Doppler (Radio 3)'
     assert feed.image == 'http://static-1.ivoox.com/canales/7/9/8/0/901603780897_XXL.jpg'
-    assert len(feed.items) == 20
+    assert len(feed.items) == 14 # Ignores 6 paid episodes
 
     assert episode.item_id == 'ck-227-navidades-infernales-de-black-christmas-a-krampus-audios-mp3_rf_79593896_1'
     assert episode.title == 'CK#227: Navidades infernales: De Black Christmas a Krampus'
