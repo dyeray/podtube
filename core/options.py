@@ -14,8 +14,8 @@ class GlobalOptions(Options):
     service: str
     id: str
     format: FeedFormat = 'rss'
-    proxy_url = True
-    proxy_download = False
+    proxy_url: bool = True
+    proxy_download: bool = False
     icon: str = None
 
 

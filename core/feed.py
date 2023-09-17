@@ -1,6 +1,6 @@
 from urllib.parse import urlencode
 
-from feedgen.feed import FeedGenerator
+from pod2gen import Podcast, Episode, Media
 
 from core.model import PodcastItem
 from core.options import GlobalOptions
@@ -9,22 +9,24 @@ from core.plugin import Plugin
 
 def render_feed(feed_id: str, plugin: Plugin, options: GlobalOptions, base_url: str):
     feed = plugin.get_feed(feed_id)
-    fg = FeedGenerator()
-    fg.load_extension('podcast')
-    fg.title(feed.title)
-    fg.description(feed.description)
-    fg.link(href=feed.link, rel='alternate')
-    fg.image(options.icon or feed.image)
-    fg.id(feed.feed_id)
-    for item in reversed(feed.items):
-        fe = fg.add_entry()
-        fe.id(item.item_id)
-        fe.title(item.title)
-        fe.description(item.description)
-        fe.pubDate(item.date)
-        fe.podcast.itunes_image(item.image)
-        fe.enclosure(generate_url(item, plugin, options, base_url), item.content_length, item.content_type)
-    return fg.rss_str(pretty=True) if options.format == 'rss' else fg.atom_str(pretty=True)
+    podcast = Podcast(
+        name=feed.title,
+        description=feed.description,
+        website=feed.link,
+        image=options.icon or feed.image,
+        explicit=False,
+        episodes=[
+            Episode(
+                id=episode.item_id,
+                title=episode.title,
+                media=Media(generate_url(episode, plugin, options, base_url), episode.content_length, type=episode.content_type),
+                summary=episode.description,
+                publication_date=episode.date,
+                image=episode.image
+            ) for episode in feed.items
+        ]
+    )
+    return podcast.rss_str()
 
 
 def generate_url(episode: PodcastItem, plugin: Plugin, options: GlobalOptions, base_url: str):
