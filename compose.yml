@@ -1,0 +1,5 @@
+services:
+  podtube:
+    image: ghcr.io/dyeray/podtube:latest
+    ports:
+      - 8080:8080
