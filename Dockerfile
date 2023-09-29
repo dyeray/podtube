@@ -10,6 +10,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of the project files
 COPY . .
 
+# Non-root user
+USER www-data
+
 # Expose the server port
 EXPOSE 8080
 
