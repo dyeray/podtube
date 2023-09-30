@@ -1,0 +1,16 @@
+# general
+/.gitignore
+/.git
+/.github
+/.vscode
+
+# app
+/.flake8
+/compose.yml
+/pytest.ini
+/README.md
+/requirements.dev.txt
+/test
+
+# misc
+.DS_Store
