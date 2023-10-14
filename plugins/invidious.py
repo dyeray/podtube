@@ -1,7 +1,7 @@
 import os
 from datetime import datetime
 
-import requests
+import httpx
 from parsel import Selector, SelectorList
 
 from core.model import PodcastItem, PodcastFeed
@@ -27,7 +27,7 @@ class PluginImpl(Plugin):
         super().__init__({'domain': os.getenv('INVIDIOUS_DOMAIN'), **options})
 
     def get_feed(self, feed_id):
-        response = requests.get(f"https://{self.options.domain}/feed/{self.options.feed_type}/{feed_id}")
+        response = httpx.get(f"https://{self.options.domain}/feed/{self.options.feed_type}/{feed_id}")
         sel = Selector(response.text)
         title = sel.css('feed > title::text').get()
         return PodcastFeed(
