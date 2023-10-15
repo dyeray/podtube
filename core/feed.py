@@ -20,9 +20,10 @@ def render_feed(feed_id: str, plugin: Plugin, options: GlobalOptions, base_url: 
                 id=episode.item_id,
                 title=episode.title,
                 media=Media(generate_url(episode, plugin, options, base_url), episode.content_length, type=episode.content_type),
-                summary=episode.description,
+                summary=episode.description.replace("\n", "<br>") if episode.description and options.html_newlines else episode.description,
                 publication_date=episode.date,
-                image=episode.image
+                image=episode.image,
+                link=episode.link
             ) for episode in feed.items
         ]
     )
