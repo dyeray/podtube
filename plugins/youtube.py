@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List
 
-import requests
+import httpx
 from parsel import Selector, SelectorList
 from pytube import YouTube
 from pytube.exceptions import PytubeError
@@ -26,7 +26,7 @@ class PluginImpl(Plugin):
     options: PluginOptions
 
     def get_feed(self, feed_id):
-        response = requests.get(f"https://www.youtube.com/feeds/videos.xml?channel_id={feed_id}")
+        response = httpx.get(f"https://www.youtube.com/feeds/videos.xml?channel_id={feed_id}")
         sel = Selector(response.text)
         entries = sel.css('feed > entry')
         title = sel.css("feed > title::text").get()

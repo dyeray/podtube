@@ -1,5 +1,5 @@
 import os
-import requests
+import httpx
 from flask import Flask, request, Response, render_template, redirect, stream_with_context
 
 from core.feed import render_feed
@@ -31,7 +31,7 @@ def download():
     options = GlobalOptions(**request.args)
     url = PluginFactory.create(options.service, request.args).get_item_url(options.id)
     if options.proxy_download:
-        req = requests.get(url, stream=True)
+        req = httpx.get(url, stream=True)
         return Response(stream_with_context(req.iter_content()), content_type=req.headers['content-type'])
     else:
         return redirect(url, code=302)

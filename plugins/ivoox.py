@@ -2,7 +2,7 @@ import re
 from typing import List, Union
 
 import dateparser
-import requests
+import httpx
 from parsel import Selector, SelectorList
 
 from core.model import PodcastFeed, PodcastItem
@@ -19,7 +19,7 @@ class PluginImpl(Plugin):
     def get_feed(self, feed_id):
         """Calculates and returns the subscribable feed."""
         url = f'https://www.ivoox.com/{feed_id}.html'
-        response = requests.get(url)
+        response = httpx.get(url)
         sel = Selector(response.text)
         videos = sel.css('.modulo-type-episodio')
         current_page = 1
@@ -28,7 +28,7 @@ class PluginImpl(Plugin):
             next_page_url = sel.css('.pagination li:last-child a::attr(href)').get()
             if next_page_url == '#':
                 break
-            response = requests.get(next_page_url)
+            response = httpx.get(next_page_url)
             sel = Selector(response.text)
             videos.extend(sel.css('.modulo-type-episodio'))
         return PodcastFeed(
