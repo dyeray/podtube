@@ -1,6 +1,7 @@
 import os
 from datetime import datetime
 
+import ftfy
 import httpx
 from parsel import Selector, SelectorList
 
@@ -54,10 +55,11 @@ class PluginImpl(Plugin):
 
     def _get_item(self, entry: Selector):
         video_id = entry.css('videoId::text').get()
+        description = entry.css('description::text').get()
         return PodcastItem(
             item_id=video_id,
             title=entry.css('title::text').get(),
-            description=entry.css('description::text').get(),
+            description=description and ftfy.fix_text(description),
             link=f"https://{self.options.domain}/watch?v={video_id}",
             date=datetime.fromisoformat(entry.css('published::text').get()),
             image=entry.css('group > thumbnail::attr(url)').get(),
