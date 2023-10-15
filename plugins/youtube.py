@@ -34,7 +34,7 @@ class PluginImpl(Plugin):
             feed_id=feed_id,
             title=title,
             description=title,
-            link='https://www.youtube.com/channel/' + feed_id,
+            link=f'https://www.youtube.com/channel/{feed_id}',
             image="",
             items=self._get_items(entries)
         )
@@ -55,6 +55,7 @@ class PluginImpl(Plugin):
             item_id=video_id,
             title=entry.css('title::text').get(),
             description=entry.css('group > description::text').get(),
+            link=f'https://www.youtube.com/watch?v={video_id}',
             date=datetime.fromisoformat(entry.css('published::text').get()),
             image=entry.css('group > thumbnail::attr(url)').get(),
             content_type="video/mp4",

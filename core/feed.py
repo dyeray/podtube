@@ -22,7 +22,8 @@ def render_feed(feed_id: str, plugin: Plugin, options: GlobalOptions, base_url: 
                 media=Media(generate_url(episode, plugin, options, base_url), episode.content_length, type=episode.content_type),
                 summary=episode.description,
                 publication_date=episode.date,
-                image=episode.image
+                image=episode.image,
+                link=episode.link
             ) for episode in feed.items
         ]
     )

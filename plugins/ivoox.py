@@ -64,6 +64,7 @@ class PluginImpl(Plugin):
             item_id=item_id,
             title=item.css('.title-wrapper a::attr(title)').get(),
             description=item.css('.audio-description button::attr(data-content)').get() or '',
+            link=f"https://www.ivoox.com/{item_id}.html",
             date=date,
             image=self._get_episode_image(item),
             content_type='audio/mp4',

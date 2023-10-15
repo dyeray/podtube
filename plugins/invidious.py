@@ -58,6 +58,7 @@ class PluginImpl(Plugin):
             item_id=video_id,
             title=entry.css('title::text').get(),
             description=entry.css('description::text').get(),
+            link=f"https://{self.options.domain}/watch?v={video_id}",
             date=datetime.fromisoformat(entry.css('published::text').get()),
             image=entry.css('group > thumbnail::attr(url)').get(),
             content_type="video/mp4",
