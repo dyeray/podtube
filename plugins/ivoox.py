@@ -19,7 +19,7 @@ class PluginImpl(Plugin):
     def get_feed(self, feed_id):
         """Calculates and returns the subscribable feed."""
         url = f'https://www.ivoox.com/{feed_id}.html'
-        response = httpx.get(url)
+        response = httpx.get(url, follow_redirects=True)
         sel = Selector(response.text)
         videos = sel.css('.modulo-type-episodio')
         current_page = 1
