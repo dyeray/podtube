@@ -28,7 +28,7 @@ class PluginImpl(Plugin):
         super().__init__({'domain': os.getenv('INVIDIOUS_DOMAIN'), **options})
 
     def get_feed(self, feed_id):
-        response = httpx.get(f"https://{self.options.domain}/feed/{self.options.feed_type}/{feed_id}")
+        response = httpx.get(f"https://{self.options.domain}/feed/{self.options.feed_type}/{feed_id}", timeout=10)
         sel = Selector(response.text)
         title = sel.css('feed > title::text').get()
         return PodcastFeed(

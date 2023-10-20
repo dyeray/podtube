@@ -28,7 +28,7 @@ class PluginImpl(Plugin):
             next_page_url = sel.css('.pagination li:last-child a::attr(href)').get()
             if next_page_url == '#':
                 break
-            response = httpx.get(next_page_url)
+            response = httpx.get(next_page_url, follow_redirects=True)
             sel = Selector(response.text)
             videos.extend(sel.css('.modulo-type-episodio'))
         return PodcastFeed(
