@@ -1,5 +1,5 @@
 pod2gen==1.0.3
-yt-dlp==2023.10.13
+yt-dlp==2023.11.14
 flask==3.0.0
 gunicorn==21.2.0
 pytube==15.0.0
