@@ -54,7 +54,7 @@ class PluginImpl(Plugin):
         return [self._get_item(entry) for entry in entries]
 
     def _get_item(self, entry: Selector):
-        video_id = entry.css('videoId::text').get()
+        video_id = entry.css('videoId::text').get() or entry.css('id::text').get().split(':')[-1]
         description = entry.css('content').get()
         return PodcastItem(
             item_id=video_id,
