@@ -7,7 +7,7 @@ from parsel import Selector, SelectorList
 
 from core.model import PodcastFeed, PodcastItem
 from core.options import Options
-from core.scrape_utils import clean
+from core.utils import clean
 from core.plugin.plugin import Plugin
 
 

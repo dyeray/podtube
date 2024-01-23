@@ -2,7 +2,9 @@ from enum import Enum
 
 from pydantic import BaseModel
 
-Options = BaseModel
+
+class Options(BaseModel):
+    pass
 
 
 class FeedFormat(str, Enum):
@@ -17,7 +19,6 @@ class GlobalOptions(Options):
     proxy_url: bool = True
     proxy_download: bool = False
     icon: str = None
-    html_newlines: bool = True
 
 
 class Choice(str, Enum):
