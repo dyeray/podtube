@@ -1,4 +1,6 @@
 import httpx
+import os
+from dotenv import load_dotenv
 from flask import Flask, request, Response, render_template, redirect, stream_with_context
 
 from core.feed import render_feed
@@ -6,6 +8,7 @@ from core.options import GlobalOptions
 from core.plugin.plugin_factory import PluginFactory
 
 
+load_dotenv()
 app = Flask(__name__)
 
 
@@ -52,4 +55,5 @@ def application_error(e):
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8000)
+    port = os.getenv('PODTUBE_PORT')
+    app.run(host='0.0.0.0', port=int(port) if port and port.isdigit() else 8080)
