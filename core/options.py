@@ -1,6 +1,6 @@
 from enum import Enum
 
-from pydantic import BaseModel
+from pydantic import BaseModel, constr, HttpUrl
 
 
 class Options(BaseModel):
@@ -13,12 +13,12 @@ class FeedFormat(str, Enum):
 
 
 class GlobalOptions(Options):
-    service: str
-    id: str
+    service: constr(pattern=r'^[a-z]+$')
+    id: constr(pattern=r'^[a-zA-Z0-9_-]+$')
     format: FeedFormat = 'rss'
     proxy_url: bool = True
     proxy_download: bool = False
-    icon: str = None
+    icon: HttpUrl | None = None
 
 
 class Choice(str, Enum):

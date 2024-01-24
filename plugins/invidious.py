@@ -4,6 +4,7 @@ from datetime import datetime
 import ftfy
 import httpx
 from parsel import Selector, SelectorList
+from pydantic import constr
 
 from core.model import PodcastItem, PodcastFeed
 from core.options import Options, Choice
@@ -20,7 +21,7 @@ class FeedType(Choice):
 
 class PluginImpl(Plugin):
     class PluginOptions(Options):
-        domain: str
+        domain: constr(pattern=r'^[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)+$')
         feed_type: FeedType = 'channel'
     options: PluginOptions
 
