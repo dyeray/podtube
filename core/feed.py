@@ -1,10 +1,14 @@
+import warnings
 from urllib.parse import urlencode
 
-from pod2gen import Podcast, Episode, Media
+from pod2gen import Podcast, Episode, Media, NotSupportedByItunesWarning
 
 from core.model import PodcastItem
 from core.options import GlobalOptions
 from core.plugin import Plugin
+
+
+warnings.filterwarnings("ignore", category=NotSupportedByItunesWarning)
 
 
 def render_feed(feed_id: str, plugin: Plugin, options: GlobalOptions, base_url: str):
