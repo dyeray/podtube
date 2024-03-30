@@ -10,8 +10,8 @@ class PluginFactory:
     @classmethod
     def create(cls, service: str, options: dict[str, str]) -> Plugin:
         try:
-            module = import_module(f'plugins.{service}')
+            module = import_module(f"plugins.{service}")
         except ModuleNotFoundError:
-            raise InputError(f'Invalid service {service} defined')
+            raise InputError(f"Invalid service {service} defined")
         plugin_cls: Type[Plugin] = module.PluginImpl
         return plugin_cls(options)

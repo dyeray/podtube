@@ -11,7 +11,7 @@ TEST_DIR = os.path.join(os.path.dirname(__file__))
 class Utils:
     @staticmethod
     def get_fixture(fixture_name: str):
-        return BufferedReader(open(f'{TEST_DIR}/fixtures/{fixture_name}', 'rb'))
+        return BufferedReader(open(f"{TEST_DIR}/fixtures/{fixture_name}", "rb"))
 
 
 @pytest.fixture
