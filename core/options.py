@@ -8,14 +8,14 @@ class Options(BaseModel):
 
 
 class FeedFormat(str, Enum):
-    rss = 'rss'
-    atom = 'atom'
+    rss = "rss"
+    atom = "atom"
 
 
 class GlobalOptions(Options):
-    service: constr(pattern=r'^[a-z]+$')
-    id: constr(pattern=r'^[a-zA-Z0-9_-]+$')
-    format: FeedFormat = 'rss'
+    service: constr(pattern=r"^[a-z]+$")
+    id: constr(pattern=r"^[a-zA-Z0-9_-]+$")
+    format: FeedFormat = "rss"
     proxy_url: bool = True
     proxy_download: bool = False
     icon: HttpUrl | None = None
