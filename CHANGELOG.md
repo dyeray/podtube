@@ -38,4 +38,4 @@
 * Rework invidious plugin to work explicitly with xml and add fixes to queries
 * Fix integration tests to work with httpx
 * Upgrade dependencies
-* Remove podtube support
+* Remove pytube support
