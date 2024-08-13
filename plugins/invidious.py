@@ -20,6 +20,8 @@ class FeedType(Choice):
 
 
 class PluginImpl(Plugin):
+    service = "youtube.com"
+
     class PluginOptions(Options):
         domain: constr(pattern=r"^[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)+$")
         feed_type: FeedType = "channel"

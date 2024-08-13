@@ -13,6 +13,8 @@ from core.utils import safe_traverse
 
 
 class PluginImpl(Plugin):
+    service = "instagram.com"
+
     def get_feed(self, feed_id):
         """Calculates and returns the subscribable feed."""
         with httpx.Client() as client:

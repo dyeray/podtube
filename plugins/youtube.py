@@ -12,6 +12,13 @@ from core.plugin.plugin import Plugin
 
 
 class PluginImpl(Plugin):
+    service = "youtube.com"
+
+    namespace_map = {
+        "yt": "http://www.youtube.com/xml/schemas/2015",
+        "media": "http://search.yahoo.com/mrss/",
+        "atom": "http://www.w3.org/2005/Atom",  # Assigning a prefix to the default namespace
+    }
 
     def __init__(self, options):
         super().__init__(options)
@@ -21,9 +28,9 @@ class PluginImpl(Plugin):
         response = httpx.get(
             f"https://www.youtube.com/feeds/videos.xml?channel_id={feed_id}"
         )
-        sel = Selector(response.text)
-        entries = sel.css("feed > entry")
-        title = sel.css("feed > title::text").get()
+        sel = Selector(response.text, type="xml")
+        entries = sel.xpath("//atom:feed/atom:entry", namespaces=self.namespace_map)
+        title = sel.xpath("//atom:feed/atom:title/text()", namespaces=self.namespace_map).get()
         return PodcastFeed(
             feed_id=feed_id,
             title=title,
@@ -45,13 +52,13 @@ class PluginImpl(Plugin):
         return [self._get_item(entry) for entry in entries]
 
     def _get_item(self, entry: Selector):
-        video_id = entry.css("videoId::text").get()
+        video_id = entry.xpath("yt:videoId/text()", namespaces=self.namespace_map).get()
         return PodcastItem(
             item_id=video_id,
-            title=entry.css("title::text").get(),
-            description=entry.css("group > description::text").get(),
+            title=entry.xpath("atom:title/text()", namespaces=self.namespace_map).get(),
+            description=entry.xpath("media:group/media:description/text()", namespaces=self.namespace_map).get(),
             link=f"https://www.youtube.com/watch?v={video_id}",
-            date=datetime.fromisoformat(entry.css("published::text").get()),
-            image=entry.css("group > thumbnail::attr(url)").get(),
+            date=datetime.fromisoformat(entry.xpath("atom:published/text()", namespaces=self.namespace_map).get()),
+            image=entry.xpath("media:group/media:thumbnail/@url", namespaces=self.namespace_map).get(),
             content_type="video/mp4",
         )

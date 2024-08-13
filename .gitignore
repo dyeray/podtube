@@ -4,3 +4,4 @@ venv
 *.swp
 *.local.*
 .env
+todo.txt

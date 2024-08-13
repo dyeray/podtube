@@ -12,6 +12,8 @@ from core.plugin.plugin import Plugin
 
 
 class PluginImpl(Plugin):
+    service = "ivoox.com"
+
     class PluginOptions(Options):
         max_pagination: int = 1
 
