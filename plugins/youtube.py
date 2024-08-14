@@ -8,11 +8,22 @@ from yt_dlp import YoutubeDL
 from ytdl_config import ytdl_opts
 from core.model import PodcastItem, PodcastFeed
 from core.exceptions import PluginError
+from core.options import Choice, Options
 from core.plugin.plugin import Plugin
+
+class FeedType(Choice):
+    channel = "channel"
+    playlist = "playlist"
+
+    def __str__(self):
+        return self.value
 
 
 class PluginImpl(Plugin):
     service = "youtube.com"
+
+    class PluginOptions(Options):
+        feed_type: FeedType = "channel"
 
     namespace_map = {
         "yt": "http://www.youtube.com/xml/schemas/2015",
@@ -26,7 +37,7 @@ class PluginImpl(Plugin):
 
     def get_feed(self, feed_id):
         response = httpx.get(
-            f"https://www.youtube.com/feeds/videos.xml?channel_id={feed_id}"
+            f"https://www.youtube.com/feeds/videos.xml?{self.options.feed_type}_id={feed_id}"
         )
         sel = Selector(response.text, type="xml")
         entries = sel.xpath("//atom:feed/atom:entry", namespaces=self.namespace_map)
