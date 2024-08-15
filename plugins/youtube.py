@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List
+from typing import List, Literal
 
 import httpx
 from parsel import Selector, SelectorList
@@ -8,22 +8,15 @@ from yt_dlp import YoutubeDL
 from ytdl_config import ytdl_opts
 from core.model import PodcastItem, PodcastFeed
 from core.exceptions import PluginError
-from core.options import Choice, Options
+from core.options import Options
 from core.plugin.plugin import Plugin
-
-class FeedType(Choice):
-    channel = "channel"
-    playlist = "playlist"
-
-    def __str__(self):
-        return self.value
 
 
 class PluginImpl(Plugin):
     service = "youtube.com"
 
     class PluginOptions(Options):
-        feed_type: FeedType = "channel"
+        feed_type: Literal["channel", "playlist"] = "channel"
 
     namespace_map = {
         "yt": "http://www.youtube.com/xml/schemas/2015",

@@ -1,5 +1,6 @@
 import os
 from datetime import datetime
+from typing import Literal
 
 import ftfy
 import httpx
@@ -7,16 +8,8 @@ from parsel import Selector, SelectorList
 from pydantic import constr
 
 from core.model import PodcastItem, PodcastFeed
-from core.options import Options, Choice
+from core.options import Options
 from core.plugin.plugin import Plugin
-
-
-class FeedType(Choice):
-    channel = "channel"
-    playlist = "playlist"
-
-    def __str__(self):
-        return self.value
 
 
 class PluginImpl(Plugin):
@@ -24,7 +17,7 @@ class PluginImpl(Plugin):
 
     class PluginOptions(Options):
         domain: constr(pattern=r"^[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)+$")
-        feed_type: FeedType = "channel"
+        feed_type: Literal["channel", "playlist"] = "channel"
 
     options: PluginOptions
 
@@ -62,9 +55,9 @@ class PluginImpl(Plugin):
 
     def _get_feed_link(self, feed_id):
         match self.options.feed_type:
-            case FeedType.channel:
+            case "channel":
                 return f"https://{self.options.domain}/channel/{feed_id}"
-            case FeedType.playlist:
+            case "playlist":
                 return f"https://{self.options.domain}/playlist?list={feed_id}"
 
     def get_item_url(self, item_id):
