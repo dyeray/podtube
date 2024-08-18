@@ -39,3 +39,11 @@
 * Fix integration tests to work with httpx
 * Upgrade dependencies
 * Remove pytube support
+
+
+## 1.6
+
+* Add playlist support to YouTube plugin.
+* Fix YouTube plugin
+* Update dependencies
+* Small fixes
