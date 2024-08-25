@@ -9,4 +9,4 @@ class MyLogger:
         print(msg)
 
 
-ytdl_opts = {"format": "(mp4)[height <= 720]", "logger": MyLogger()}
+ytdl_opts = {"format": "(mp4)[height <= 720]/best", "logger": MyLogger()}

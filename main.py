@@ -11,7 +11,9 @@ from flask import (
     stream_with_context,
 )
 
+from core.auth import require_auth
 from core.feed import render_feed
+from core.migration import handle_legacy_redirect
 from core.options import GlobalOptions
 from core.plugin.plugin_factory import PluginFactory
 
@@ -26,9 +28,15 @@ def index():
 
 
 @app.route("/feed")
+@require_auth
 def feed():
+    # Upgrade podtube v1 urls. Only for a limited time.
+    redirect_resp = handle_legacy_redirect(request.args, "feed")
+    if redirect_resp:
+        return redirect_resp
+
     options = GlobalOptions(**request.args)
-    feed_generator = PluginFactory.create(options.service, request.args)
+    feed_generator = PluginFactory.create(options.service, options.plugin, request.args)
     return Response(
         render_feed(options.id, feed_generator, options, request.host_url),
         mimetype="application/rss+xml",
@@ -37,9 +45,15 @@ def feed():
 
 
 @app.route("/download")
+@require_auth
 def download():
+    # Upgrade podtube v1 urls. Only for a limited time.
+    redirect_resp = handle_legacy_redirect(request.args, "download")
+    if redirect_resp:
+        return redirect_resp
+
     options = GlobalOptions(**request.args)
-    url = PluginFactory.create(options.service, request.args).get_item_url(options.id)
+    url = PluginFactory.create(options.service, options.plugin, request.args).get_item_url(options.id)
     if options.proxy_download:
         req = httpx.get(url, stream=True)
         return Response(

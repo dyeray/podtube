@@ -10,3 +10,9 @@ def safe_traverse(input_data, *args):
         except Exception:
             return None
     return current
+
+def find_first(iterable, function = lambda x: True):
+    for item in iterable:
+        if function(item):
+            return item
+    return None
