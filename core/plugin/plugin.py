@@ -6,6 +6,9 @@ from core.options import Options
 
 class Plugin(abc.ABC):
 
+    service = None
+    plugin_name = None
+
     PluginOptions = Options  # Redefine the PluginOptions class on a plugin to set the specific plugin options.
 
     def __init__(self, options: dict[str, str]):

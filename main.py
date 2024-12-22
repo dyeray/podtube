@@ -14,8 +14,9 @@ from flask import (
 from core.auth import require_auth
 from core.feed import render_feed
 from core.migration import handle_legacy_redirect
-from core.options import GlobalOptions
+from core.options import GlobalOptions, ServeOptions
 from core.plugin.plugin_factory import PluginFactory
+from core.storage.storage import Storage
 
 
 load_dotenv()
@@ -62,6 +63,26 @@ def download():
         )
     else:
         return redirect(url, code=302)
+
+
+@app.route("/serve")
+@require_auth
+def serve():
+    options = options = ServeOptions(**request.args)
+    plugin = PluginFactory.create("", options.plugin, request.args)
+    storage = Storage(plugin)
+    shared_file = storage.serve(namespace=options.namespace, id=options.id)
+    return Response(
+        stream_with_context(generate_file(shared_file.file_handle)),
+        content_type=shared_file.file_info.mimetype,
+        headers={
+            'Content-Disposition': f'attachment; filename="{shared_file.file_info.filename}"'
+        },
+    )
+
+def generate_file(file_like_object):
+    while chunk := file_like_object.read(8192):
+        yield chunk
 
 
 @app.route("/health-check")

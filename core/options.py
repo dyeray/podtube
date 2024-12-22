@@ -25,3 +25,10 @@ class GlobalOptions(Options):
         if self.service is not None and self.plugin is not None:
             raise ValueError("'service' and 'plugin' cannot be defined at the same time")
         return self
+
+
+class ServeOptions(Options):
+    namespace: constr(pattern=r"^[a-zA-Z0-9_-]+$")
+    id: constr(pattern=r"^[a-zA-Z0-9_-]+$")
+    service: Optional[constr(pattern=r"^[a-z.]+$")] = None
+    plugin: Optional[constr(pattern=r"^[a-z]+$")] = None
