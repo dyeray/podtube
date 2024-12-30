@@ -18,6 +18,8 @@
       <li>YouTube</li>
       <li>Invidious</li>
       <li>iVoox Originals</li>
+      <li>Instagram Reels</li>
+      <li>Filesystem</li>
     </ul>
     <h2>Instructions</h2>
     <p>
@@ -60,4 +62,20 @@
     <a href="{{host_url}}feed?id=podcast-danko_sq_f11313_1&service=ivoox">{{host_url}}feed?id=podcast-danko_sq_f11313_1&service=ivoox</a><br/>
     <a href="{{host_url}}feed?id=cenandoconpablo&service=instagram">{{host_url}}feed?id=cenandoconpablo&service=instagram</a><br/>
   </body>
+
+  <h2>podtube v2 migration</h2>
+  <ul>
+    <li>
+        proxy_url option was removed: On the initial versions of podtube, the media urls were directly generated. This meant that before downloading a YouTube video, the feed needed to be reloaded, as the URLs are only valid for a small amount of time. However on other plugins where the URL is permanent it could be a bit faster and reduce requests to podtube. After adding offline mode we are removing this option and always going through podtube backend in order to keep the code a bit simpler.
+    </li>
+    <li>
+      storage mode considerations: The idea behind storage mode is that plugins will be able to read and write to the filesystem in order to provide support for things that were not possible before, for example downloading videos which only have a streaming or multipart source or inserting subtitles. I've been careful to avoid security issues, but it is not worth the risk if you don't need this feature, so by default capacity to use filesystem is not enabled. Also I think it would probably not work as-is inside the docker images. In order to enable access to filesystem, env variable PODTUBE_FILESYSTEM_MODE needs to be set to true.
+    </li>
+    <li>
+      There is a new option to require API key to protect the backend against attacks. If the env variable API_KEY is set, then the feed urls require a new query parameter api_key with the same value. This is not required, so the default behavior is as v1.
+    </li>
+    <li>
+      URL upgrade: youtube-dl and invidious instances stop working from time to time, so I think it is useful to be able to switch from one plugin to the other from the backend without needing to update the feed url on your podcatcher. Because of this, the query parameter called service before will now be called plugin, and behaves as the old services query param. The service query param now requires the full domain name of the service and will pick the first plugin that announces support for it. The preferred plugin can be manually set through an env variable. This only applies to YouTube support for now. So setting PODTUBE_PLUGIN_youtube.com=invidious will use invidious plugin, while setting it to youtube will use the YouTube plugin without upgrading the URLs. version 2.0 contains an upgrade code that will upgrade your v1 urls through a permanent redirect to a URL that keeps the behavior of v1, this means not requiring any env variable, but also not allowing to override the YouTube implementation. Make sure that the URLs are updated on your client with the redirect or future podtube versions will stop working.
+    </li>
+  </ul>
 </html>
