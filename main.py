@@ -1,4 +1,3 @@
-import os
 
 import httpx
 from dotenv import load_dotenv
@@ -11,9 +10,13 @@ from flask import (
     stream_with_context,
 )
 
+from core.auth import require_auth
+from core.config import Config
 from core.feed import render_feed
+from core.migration import handle_legacy_redirect
 from core.options import GlobalOptions
 from core.plugin.plugin_factory import PluginFactory
+from core.storage.storage import Storage
 
 
 load_dotenv()
@@ -26,9 +29,15 @@ def index():
 
 
 @app.route("/feed")
+@require_auth
 def feed():
+    # Upgrade podtube v1 urls. Only for a limited time.
+    redirect_resp = handle_legacy_redirect(request.args, "feed")
+    if redirect_resp:
+        return redirect_resp
+
     options = GlobalOptions(**request.args)
-    feed_generator = PluginFactory.create(options.service, request.args)
+    feed_generator = PluginFactory.create(options.service, options.plugin, request.args)
     return Response(
         render_feed(options.id, feed_generator, options, request.host_url),
         mimetype="application/rss+xml",
@@ -37,17 +46,41 @@ def feed():
 
 
 @app.route("/download")
+@require_auth
 def download():
+    # Upgrade podtube v1 urls. Only for a limited time.
+    redirect_resp = handle_legacy_redirect(request.args, "download")
+    if redirect_resp:
+        return redirect_resp
+
     options = GlobalOptions(**request.args)
-    url = PluginFactory.create(options.service, request.args).get_item_url(options.id)
-    if options.proxy_download:
+    plugin = PluginFactory.create(options.service, options.plugin, request.args)
+    if Config.is_filesystem_mode_enabled(plugin):
+        namespace, item_id = options.id.split(":")
+        storage = Storage(plugin)
+        shared_file = storage.serve(namespace=namespace, file_id=item_id)
+        return Response(
+            stream_with_context(generate_file(shared_file.file_handle)),
+            content_type=shared_file.file_info.mimetype,
+            headers={
+                'Content-Disposition': f'attachment; filename="{shared_file.file_info.filename}"',
+                'Content-Length': shared_file.file_info.size
+            },
+        )
+    elif options.proxy_download:
+        url = plugin.get_item_url(options.id)
         req = httpx.get(url, stream=True)
         return Response(
             stream_with_context(req.iter_content()),
             content_type=req.headers["content-type"],
         )
     else:
-        return redirect(url, code=302)
+        return redirect(plugin.get_item_url(options.id), code=302)
+
+
+def generate_file(file_like_object):
+    while chunk := file_like_object.read(8192):
+        yield chunk
 
 
 @app.route("/health-check")
@@ -66,5 +99,4 @@ def application_error(e):
 
 
 if __name__ == "__main__":
-    port = os.getenv("PODTUBE_PORT")
-    app.run(host="0.0.0.0", port=int(port) if port and port.isdigit() else 8080)
+    app.run(host="0.0.0.0", port=Config.get_port())

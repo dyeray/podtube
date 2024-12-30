@@ -47,12 +47,9 @@ def render_feed(feed_id: str, plugin: Plugin, options: GlobalOptions, base_url: 
 def generate_url(
     episode: PodcastItem, plugin: Plugin, options: GlobalOptions, base_url: str
 ):
-    if options.proxy_url:
-        query_params = (
+    query_params = (
             options.model_dump(exclude_none=True)
             | plugin.options.model_dump(exclude_none=True)
             | {"id": episode.item_id}
-        )
-        return f"{base_url}download?" + urlencode(query_params)
-    else:
-        return plugin.get_item_url(episode.item_id)
+    )
+    return f"{base_url}download?" + urlencode(query_params)
