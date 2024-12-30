@@ -1,9 +1,9 @@
-import os
 import pkgutil
 
 from importlib import import_module
 from typing import Type
 
+from core.config import Config
 from core.exceptions import InputError
 from core.plugin import Plugin
 from core.utils import find_first
@@ -37,7 +37,7 @@ class PluginFactory:
     @classmethod
     def get_plugins_from_service(cls, service: str) -> list[Type[Plugin]]:
         plugins = [plugin for plugin in cls.plugins if plugin.service == service]
-        preferred_plugin_name = os.getenv(f"PODTUBE_PLUGIN_{service}")
+        preferred_plugin_name = Config.get_preferred_plugin_for_service(service)
         preferred_plugin = preferred_plugin_name and find_first(plugins, lambda x: x.plugin_name == preferred_plugin_name)
         return [preferred_plugin] if preferred_plugin else plugins
 

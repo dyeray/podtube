@@ -1,4 +1,3 @@
-import os
 
 import httpx
 from dotenv import load_dotenv
@@ -59,12 +58,13 @@ def download():
     if Config.is_filesystem_mode_enabled(plugin):
         namespace, item_id = options.id.split(":")
         storage = Storage(plugin)
-        shared_file = storage.serve(namespace=namespace, id=item_id)
+        shared_file = storage.serve(namespace=namespace, file_id=item_id)
         return Response(
             stream_with_context(generate_file(shared_file.file_handle)),
             content_type=shared_file.file_info.mimetype,
             headers={
-                'Content-Disposition': f'attachment; filename="{shared_file.file_info.filename}"'
+                'Content-Disposition': f'attachment; filename="{shared_file.file_info.filename}"',
+                'Content-Length': shared_file.file_info.size
             },
         )
     elif options.proxy_download:

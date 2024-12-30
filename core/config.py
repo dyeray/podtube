@@ -15,6 +15,14 @@ class Config:
         port = os.getenv("PODTUBE_PORT")
         return int(port) if port and port.isdigit() else 8080
 
+    @staticmethod
+    def get_required_api_key():
+        return os.getenv("PODTUBE_API_KEY")
+
+    @staticmethod
+    def get_preferred_plugin_for_service(service: str):
+        return os.getenv(f"PODTUBE_PLUGIN_{service}")
+
 def get_bool_env(name, default=False):
     str_value = os.getenv(name)
     if str_value is None:

@@ -57,8 +57,8 @@ class PluginImpl(Plugin):
         ]
 
     def _get_item(self, item: Selector) -> Union[PodcastItem, None]:
-        has_support_badge = item.css(".title-wrapper span.fan-title").get() != None
-        if has_support_badge == True:
+        has_support_badge = item.css(".title-wrapper span.fan-title").get() is not None
+        if has_support_badge:
             return None
         url = item.css(".title-wrapper a::attr(href)").get()
         re_item_id = re.match(r"https?://www\.ivoox\.com/([-_\w\d]+)\.html", url)

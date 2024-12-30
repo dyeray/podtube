@@ -36,7 +36,8 @@ class PluginImpl(Plugin):
             title=item.filename.split(".")[0],
             description="",
             link="",
-            date=None,
+            date=item.date,
             image=None,
             content_type=item.mimetype or "",
+            content_length=str(item.size)
         )
