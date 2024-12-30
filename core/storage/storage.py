@@ -2,7 +2,6 @@ import glob
 import mimetypes
 import os
 from collections import OrderedDict
-from typing import BinaryIO
 
 from core.plugin.plugin import Plugin
 from core.storage.hasher import Hasher

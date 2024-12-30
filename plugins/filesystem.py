@@ -1,21 +1,13 @@
-from datetime import datetime
-from typing import List, Literal
-from typing_extensions import ItemsView
-
-import httpx
-from parsel import Selector, SelectorList
-from yt_dlp import YoutubeDL
-
-from ytdl_config import ytdl_opts
 from core.model import PodcastItem, PodcastFeed
-from core.exceptions import PluginError
-from core.options import Options
 from core.plugin.plugin import Plugin
 from core.storage.files import FileInfo
 from core.storage.storage import Storage
 
 
 class PluginImpl(Plugin):
+    supports_fs_mode = True
+    default_fs_mode_enabled = True
+
     def __init__(self, options):
         super().__init__(options)
         self.storage = Storage(self)
@@ -33,8 +25,7 @@ class PluginImpl(Plugin):
         )
 
     def get_item_url(self, item_id):
-        feed_id, item = item_id.split(":")
-        return f"http://<base_url>/serve?plugin=filesystem&id={item}&namespace={feed_id}" # TODO
+        raise NotImplementedError()
 
     def _get_items(self, feed_id: str, items: list[FileInfo]) -> list[PodcastItem]:
         return [self._get_item(feed_id, item) for item in items]

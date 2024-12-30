@@ -12,9 +12,10 @@ from flask import (
 )
 
 from core.auth import require_auth
+from core.config import Config
 from core.feed import render_feed
 from core.migration import handle_legacy_redirect
-from core.options import GlobalOptions, ServeOptions
+from core.options import GlobalOptions
 from core.plugin.plugin_factory import PluginFactory
 from core.storage.storage import Storage
 
@@ -54,31 +55,28 @@ def download():
         return redirect_resp
 
     options = GlobalOptions(**request.args)
-    url = PluginFactory.create(options.service, options.plugin, request.args).get_item_url(options.id)
-    if options.proxy_download:
+    plugin = PluginFactory.create(options.service, options.plugin, request.args)
+    if Config.is_filesystem_mode_enabled(plugin):
+        namespace, item_id = options.id.split(":")
+        storage = Storage(plugin)
+        shared_file = storage.serve(namespace=namespace, id=item_id)
+        return Response(
+            stream_with_context(generate_file(shared_file.file_handle)),
+            content_type=shared_file.file_info.mimetype,
+            headers={
+                'Content-Disposition': f'attachment; filename="{shared_file.file_info.filename}"'
+            },
+        )
+    elif options.proxy_download:
+        url = plugin.get_item_url(options.id)
         req = httpx.get(url, stream=True)
         return Response(
             stream_with_context(req.iter_content()),
             content_type=req.headers["content-type"],
         )
     else:
-        return redirect(url, code=302)
+        return redirect(plugin.get_item_url(options.id), code=302)
 
-
-@app.route("/serve")
-@require_auth
-def serve():
-    options = options = ServeOptions(**request.args)
-    plugin = PluginFactory.create("", options.plugin, request.args)
-    storage = Storage(plugin)
-    shared_file = storage.serve(namespace=options.namespace, id=options.id)
-    return Response(
-        stream_with_context(generate_file(shared_file.file_handle)),
-        content_type=shared_file.file_info.mimetype,
-        headers={
-            'Content-Disposition': f'attachment; filename="{shared_file.file_info.filename}"'
-        },
-    )
 
 def generate_file(file_like_object):
     while chunk := file_like_object.read(8192):
@@ -101,5 +99,4 @@ def application_error(e):
 
 
 if __name__ == "__main__":
-    port = os.getenv("PODTUBE_PORT")
-    app.run(host="0.0.0.0", port=int(port) if port and port.isdigit() else 8080)
+    app.run(host="0.0.0.0", port=Config.get_port())
