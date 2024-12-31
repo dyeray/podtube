@@ -1,4 +1,4 @@
-class MyLogger:
+class Logger:
     def debug(self, msg):
         pass
 
@@ -7,6 +7,3 @@ class MyLogger:
 
     def error(self, msg):
         print(msg)
-
-
-ytdl_opts = {"format": "best[protocol=https]/best[protocol=http]", "logger": MyLogger()}

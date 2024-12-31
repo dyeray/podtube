@@ -10,15 +10,15 @@ from core.exceptions import PluginError
 from core.model import PodcastFeed, PodcastItem
 from core.plugin.plugin import Plugin
 from core.utils import safe_traverse
-from ytdl_config import ytdl_opts
+from core.plugin.ytdl_logger import Logger
 
 
 class PluginImpl(Plugin):
     service = "instagram.com"
 
-    def __init__(self, options):
-        super().__init__(options)
-        self.resolver = YoutubeDL(ytdl_opts)
+    @property
+    def downloader(self):
+        return YoutubeDL({"format": "best[protocol=https]/best[protocol=http]", "logger": Logger()})
 
     def get_feed(self, feed_id):
         """Calculates and returns the subscribable feed."""
@@ -54,7 +54,7 @@ class PluginImpl(Plugin):
             # It would be possible to get the video by accessing data API key 'video_url'. Issues:
             # * If we return the url directly when genrating the feed, url may expire before download.
             # * If we call data API when user requests download, info about that video might not be there anymore.
-            return self.resolver.extract_info(
+            return self.downloader.extract_info(
                 self._get_story_url(item_id), download=False
             )["url"]
         except Exception as ex:

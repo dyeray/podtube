@@ -20,6 +20,6 @@ class PodcastFeed:
     title: str
     description: str
     link: str
-    image: str
+    image: Optional[str]
     items: List[PodcastItem]
     feed_id: str

@@ -5,11 +5,12 @@ import httpx
 from parsel import Selector, SelectorList
 from yt_dlp import YoutubeDL
 
-from ytdl_config import ytdl_opts
 from core.model import PodcastItem, PodcastFeed
 from core.exceptions import PluginError
 from core.options import Options
 from core.plugin.plugin import Plugin
+from core.plugin.ytdl_logger import Logger
+from core.utils import find_first
 
 
 class PluginImpl(Plugin):
@@ -24,14 +25,25 @@ class PluginImpl(Plugin):
         "atom": "http://www.w3.org/2005/Atom",  # Assigning a prefix to the default namespace
     }
 
-    def __init__(self, options):
-        super().__init__(options)
-        self.resolver = YoutubeDL(ytdl_opts)
+    @property
+    def downloader(self):
+        return YoutubeDL({"format": "best[protocol=https]/best[protocol=http]", "logger": Logger()})
+
+    @property
+    def info_extractor(self):
+        return YoutubeDL({'playlist_items': '0', 'logger': Logger()})
 
     def get_feed(self, feed_id):
         response = httpx.get(
             f"https://www.youtube.com/feeds/videos.xml?{self.options.feed_type}_id={feed_id}"
         )
+        if self.options.feed_type == 'channel':
+            metadata = self.info_extractor.extract_info(f"https://www.youtube.com/channel/{feed_id}", download=False)
+            profile_info = find_first(metadata['thumbnails'], lambda x: x['id'] == "avatar_uncropped") or find_first(metadata['thumbnails'])
+            feed_url = profile_info and profile_info['url']
+        else:
+            feed_url = None
+
         sel = Selector(response.text, type="xml")
         entries = sel.xpath("//atom:feed/atom:entry", namespaces=self.namespace_map)
         title = sel.xpath("//atom:feed/atom:title/text()", namespaces=self.namespace_map).get()
@@ -40,13 +52,13 @@ class PluginImpl(Plugin):
             title=title,
             description=title,
             link=f"https://www.youtube.com/channel/{feed_id}",
-            image="",
+            image=feed_url,
             items=self._get_items(entries),
         )
 
     def get_item_url(self, item_id):
         try:
-            return self.resolver.extract_info(
+            return self.downloader.extract_info(
                 f"https://www.youtube.com/watch?v={item_id}", download=False
             )["url"]
         except Exception as ex:
