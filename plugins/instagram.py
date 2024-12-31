@@ -75,7 +75,7 @@ class PluginImpl(Plugin):
         ).split("\n", 1)
         return PodcastItem(
             item_id=item_id,
-            title=safe_traverse(info, 0) or "",
+            title=safe_traverse(info, 0) or item_id,
             description=safe_traverse(info, 1) or "",
             link=self._get_story_url(item_id),
             date=datetime.datetime.utcfromtimestamp(item["taken_at_timestamp"]).replace(
