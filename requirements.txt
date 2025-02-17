@@ -1,5 +1,5 @@
 pod2gen==1.0.3
-yt-dlp==2024.12.23
+yt-dlp==2025.1.26
 flask==3.1.0
 gunicorn==23.0.0
 httpx==0.28.1
