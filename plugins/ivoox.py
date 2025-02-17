@@ -1,3 +1,4 @@
+import json
 import re
 from typing import List, Union
 
@@ -24,7 +25,8 @@ class PluginImpl(Plugin):
         url = f"https://www.ivoox.com/{feed_id}.html"
         response = httpx.get(url, follow_redirects=True)
         sel = Selector(response.text)
-        videos = sel.css(".modulo-type-episodio")
+        videos = sel.xpath('.//div[contains(@class, "play-container")]/../../..')
+        '''
         current_page = 1
         while current_page < self.options.max_pagination:
             current_page += 1
@@ -34,12 +36,15 @@ class PluginImpl(Plugin):
             response = httpx.get(next_page_url, follow_redirects=True)
             sel = Selector(response.text)
             videos.extend(sel.css(".modulo-type-episodio"))
+        '''
+        match = re.search(r'<script[^>]*>\s*(\{"@context":"https://schema.org/","@type":"PodcastSeries",.*?\})\s*</script>', response.text, re.DOTALL)
+        data = json.loads(match[1])
         return PodcastFeed(
             feed_id=feed_id,
-            title=clean(sel.css("#list_title_new::text").get()),
-            description=clean(sel.css(".overview::text").get()),
+            title=data['name'],
+            description=data['description'],
             link=url,
-            image=sel.css("meta[property='og:image']::attr(content)").get(),
+            image=data['image'],
             items=self._get_items(videos),
         )
 
@@ -57,24 +62,26 @@ class PluginImpl(Plugin):
         ]
 
     def _get_item(self, item: Selector) -> Union[PodcastItem, None]:
+        '''
         has_support_badge = item.css(".title-wrapper span.fan-title").get() is not None
         if has_support_badge:
             return None
-        url = item.css(".title-wrapper a::attr(href)").get()
-        re_item_id = re.match(r"https?://www\.ivoox\.com/([-_\w\d]+)\.html", url)
-        item_id = re_item_id and re_item_id.group(1)
         date = dateparser.parse(
             item.css(".action .date::attr(title)").get(),
             settings={"RETURN_AS_TIMEZONE_AWARE": True, "TO_TIMEZONE": "UTC"},
         )
+        '''
+        url = item.xpath('.//a/@href').get().strip('//')
+        re_item_id = re.match(r'www\.ivoox\.com/(.+?)\.html$', url)
+        item_id = re_item_id and re_item_id.group(1)
         return PodcastItem(
             item_id=item_id,
-            title=item.css(".title-wrapper a::attr(title)").get(),
-            description=item.css(".audio-description button::attr(data-content)").get()
+            title=item.xpath('.//img/@alt').get(),
+            description=clean(item.xpath('.//div[contains(@class, "description")]/text()').get())
             or "",
             link=f"https://www.ivoox.com/{item_id}.html",
-            date=date,
-            image=self._get_episode_image(item),
+            date=None,
+            image=item.xpath('.//img/@data-lazy-src').get(),
             content_type="audio/mp4",
         )
 
