@@ -21,7 +21,7 @@ def test_get_feed(utils, httpx_mock):
     assert feed.title == "Instituto de Física Teórica IFT"
     assert feed.description == "Instituto de Física Teórica IFT"
     assert feed.link == f"https://www.youtube.com/channel/{channel_id}"
-    assert feed.image == ""
+    assert feed.image == "https://yt3.googleusercontent.com/87DWLtN5ocBAaPYsxhChNuDcmqTTzIsor3CpVwly9V68epKnPZ_j-4SyMJVbz4sjpwiR8dKfDA=s0"
 
     assert episode.item_id == expected_episode_id
     assert (
