@@ -1,6 +1,6 @@
 pod2gen==1.0.3
 yt-dlp==2025.2.19
-flask==3.1.0
+flask==3.1.1
 gunicorn==23.0.0
 httpx==0.28.1
 parsel==1.10.0
