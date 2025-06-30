@@ -10,7 +10,8 @@ class Options(BaseModel):
 class GlobalOptions(Options):
     service: Optional[constr(pattern=r"^[a-z.]+$")] = None
     plugin: Optional[constr(pattern=r"^[a-z]+$")] = None
-    id: constr(pattern=r"^[a-zA-Z0-9_\-:]+$")
+    id: constr(pattern=r"^[a-zA-Z0-9_\-:/]+$")
+    item_id: Optional[constr(pattern=r"^[a-zA-Z0-9_\-:/]+$")] = None
     format: Literal["rss", "atom"] = "rss"
     proxy_download: bool = False
     icon: HttpUrl | None = None

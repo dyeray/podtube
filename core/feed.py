@@ -50,6 +50,6 @@ def generate_url(
     query_params = (
             options.model_dump(exclude_none=True)
             | plugin.options.model_dump(exclude_none=True)
-            | {"id": episode.item_id}
+            | {"item_id": episode.item_id}
     )
     return f"{base_url}download?" + urlencode(query_params)

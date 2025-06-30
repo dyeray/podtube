@@ -56,9 +56,8 @@ def download():
     options = GlobalOptions(**request.args)
     plugin = PluginFactory.create(options.service, options.plugin, request.args)
     if Config.is_filesystem_mode_enabled(plugin):
-        namespace, item_id = options.id.split(":")
         storage = Storage(plugin)
-        shared_file = storage.serve(namespace=namespace, file_id=item_id)
+        shared_file = storage.serve(namespace=options.id, file_id=options.item_id)
         return Response(
             stream_with_context(generate_file(shared_file.file_handle)),
             content_type=shared_file.file_info.mimetype,
@@ -75,7 +74,7 @@ def download():
             content_type=req.headers["content-type"],
         )
     else:
-        return redirect(plugin.get_item_url(options.id), code=302)
+        return redirect(plugin.get_item_url(options.item_id), code=302)
 
 
 def generate_file(file_like_object):

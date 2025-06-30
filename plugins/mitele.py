@@ -3,9 +3,8 @@ import re
 from datetime import datetime
 from typing import List, Union
 
-import dateparser
 import httpx
-from parsel import Selector, SelectorList
+from parsel import Selector
 
 from core.model import PodcastFeed, PodcastItem
 from core.options import Options
@@ -30,6 +29,8 @@ def find_path(data, target, path=[]):
 
 class PluginImpl(Plugin):
     service = "mitele.es"
+    supports_fs_mode = True
+    default_fs_mode_enabled = True
 
     class PluginOptions(Options):
         pass

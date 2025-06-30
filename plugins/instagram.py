@@ -8,6 +8,7 @@ from yt_dlp import YoutubeDL
 
 from core.exceptions import PluginError
 from core.model import PodcastFeed, PodcastItem
+from core.options import GlobalOptions
 from core.plugin.plugin import Plugin
 from core.utils import safe_traverse
 from core.plugin.ytdl_logger import Logger

@@ -53,15 +53,15 @@ class PluginImpl(Plugin):
             ),
         )
 
+    def get_item_url(self, item_id):
+        return f"https://{self.options.domain}/latest_version?id={item_id}&itag=18&local=true"
+
     def _get_feed_link(self, feed_id):
         match self.options.feed_type:
             case "channel":
                 return f"https://{self.options.domain}/channel/{feed_id}"
             case "playlist":
                 return f"https://{self.options.domain}/playlist?list={feed_id}"
-
-    def get_item_url(self, item_id):
-        return f"https://{self.options.domain}/latest_version?id={item_id}&itag=18&local=true"
 
     def _get_items(self, entries: SelectorList) -> list[PodcastItem]:
         return [self._get_item(entry) for entry in entries]
