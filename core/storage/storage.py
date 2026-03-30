@@ -35,18 +35,41 @@ class Storage:
         ]
 
     def serve(self, namespace: str, file_id: str) -> SharedFile:
+        """Serve a file from storage by its file_id (hash of filename)."""
         self._assert_permissions()
         try:
             filename = self._get_namespace_files(namespace)[file_id]
         except KeyError:
             raise InputError(f"File not found: {namespace}:{file_id}")
         full_filename = self._path(namespace, filename)
-        return self._open_shared_file(file_id, full_filename)
+        return SharedFile(
+            file_handle=open(full_filename, "rb"),
+            file_info=FileInfo(
+                id=file_id,
+                mimetype=mimetypes.guess_type(full_filename)[0],
+                filename=filename,
+                date=self._datetime_from_path(full_filename),
+                size=os.path.getsize(full_filename),
+            ),
+        )
 
-    def is_stored(self, namespace: str, item_id: str) -> bool:
-        """Check if a completed download exists for the given item."""
+    def find_stored_id(self, namespace: str, item_id: str) -> str | None:
+        """Check if a completed download exists for the given item.
+        Returns the file_id (usable with serve()) if found, None otherwise."""
         self._assert_permissions()
-        return self._find_stored_file(namespace, item_id) is not None
+        hashed = self.hasher.hash(item_id)
+        try:
+            namespace_path = self._path(namespace)
+        except InputError:
+            return None
+        if not namespace_path.exists():
+            return None
+        for filename in os.listdir(namespace_path):
+            path = namespace_path / filename
+            stem, suffix = os.path.splitext(filename)
+            if path.is_file() and stem == hashed and suffix != DOWNLOADING_EXTENSION:
+                return self.hasher.hash(filename)
+        return None
 
     def is_downloading(self, namespace: str, item_id: str) -> bool:
         """Check if a download is in progress for the given item."""
@@ -54,21 +77,12 @@ class Storage:
         marker = self._downloading_marker_path(namespace, item_id)
         return marker.exists()
 
-    def serve_by_item_id(self, namespace: str, item_id: str) -> SharedFile:
-        """Serve a file using the deterministic hash of item_id to locate it."""
-        self._assert_permissions()
-        stored_path = self._find_stored_file(namespace, item_id)
-        if stored_path is None:
-            raise InputError(f"File not found for item: {item_id}")
-        hashed_id = self.hasher.hash(item_id)
-        return self._open_shared_file(hashed_id, stored_path)
-
     def request_download(
         self, namespace: str, item_id: str, download_fn: Callable[[str], None]
     ) -> None:
         """Trigger a background download if the item is not already stored or downloading."""
         self._assert_permissions()
-        if self.is_stored(namespace, item_id) or self.is_downloading(
+        if self.find_stored_id(namespace, item_id) is not None or self.is_downloading(
             namespace, item_id
         ):
             return
@@ -134,40 +148,12 @@ class Storage:
             return None
         return max(files, key=lambda p: p.stat().st_size)
 
-    def _find_stored_file(self, namespace: str, item_id: str) -> Path | None:
-        """Find a completed file matching hash(item_id).* in the namespace (excluding .downloading markers)."""
-        hashed = self.hasher.hash(item_id)
-        try:
-            namespace_path = self._path(namespace)
-        except InputError:
-            return None
-        if not namespace_path.exists():
-            return None
-        matches = [
-            p
-            for p in namespace_path.iterdir()
-            if p.is_file() and p.stem == hashed and p.suffix != DOWNLOADING_EXTENSION
-        ]
-        return matches[0] if matches else None
-
     def _downloading_marker_path(self, namespace: str, item_id: str) -> Path:
         """Return the path for the .downloading marker file."""
         hashed = self.hasher.hash(item_id)
         namespace_path = self._path(namespace)
         namespace_path.mkdir(parents=True, exist_ok=True)
         return self._path(namespace, hashed + DOWNLOADING_EXTENSION)
-
-    def _open_shared_file(self, file_id: str, full_path: Path) -> SharedFile:
-        return SharedFile(
-            file_handle=open(full_path, "rb"),
-            file_info=FileInfo(
-                id=file_id,
-                mimetype=mimetypes.guess_type(full_path)[0],
-                filename=full_path.name,
-                date=self._datetime_from_path(full_path),
-                size=os.path.getsize(full_path),
-            ),
-        )
 
     def _build_file_info(self, file_id: str, filename: str, namespace: str):
         full_filename = self._path(namespace, filename)

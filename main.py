@@ -85,8 +85,9 @@ def _serve_with_download(options, plugin, storage):
     if not namespace:
         return Response("Missing feed_id parameter", status=400)
 
-    if storage.is_stored(namespace, item_id):
-        shared_file = storage.serve_by_item_id(namespace, item_id)
+    file_id = storage.find_stored_id(namespace, item_id)
+    if file_id is not None:
+        shared_file = storage.serve(namespace, file_id)
         return _stream_shared_file(shared_file)
 
     if not storage.is_downloading(namespace, item_id):

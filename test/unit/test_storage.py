@@ -37,20 +37,22 @@ def storage(mock_plugin, storage_dir, monkeypatch):
     return s
 
 
-class TestIsStored:
+class TestFindStoredId:
     def test_not_stored_when_empty(self, storage):
-        assert storage.is_stored("ns", "item1") is False
+        assert storage.find_stored_id("ns", "item1") is None
 
     def test_not_stored_when_namespace_missing(self, storage):
-        assert storage.is_stored("nonexistent", "item1") is False
+        assert storage.find_stored_id("nonexistent", "item1") is None
 
-    def test_stored_when_file_exists(self, storage, storage_dir):
+    def test_returns_file_id_when_file_exists(self, storage, storage_dir):
         ns_dir = storage_dir / "ns"
         ns_dir.mkdir()
         hashed = storage.hasher.hash("item1")
         (ns_dir / f"{hashed}.mp4").write_text("content")
 
-        assert storage.is_stored("ns", "item1") is True
+        file_id = storage.find_stored_id("ns", "item1")
+        assert file_id is not None
+        assert file_id == storage.hasher.hash(f"{hashed}.mp4")
 
     def test_not_stored_when_only_downloading_marker(self, storage, storage_dir):
         ns_dir = storage_dir / "ns"
@@ -58,7 +60,7 @@ class TestIsStored:
         hashed = storage.hasher.hash("item1")
         (ns_dir / f"{hashed}.downloading").touch()
 
-        assert storage.is_stored("ns", "item1") is False
+        assert storage.find_stored_id("ns", "item1") is None
 
 
 class TestIsDownloading:
@@ -118,7 +120,7 @@ class TestStore:
                 os.unlink(source.name)
 
 
-class TestServeByItemId:
+class TestServeViaFindStoredId:
     def test_serve_existing_file(self, storage, storage_dir):
         ns_dir = storage_dir / "ns"
         ns_dir.mkdir()
@@ -126,9 +128,12 @@ class TestServeByItemId:
         file_path = ns_dir / f"{hashed}.mp4"
         file_path.write_bytes(b"video content")
 
-        shared_file = storage.serve_by_item_id("ns", "item1")
+        file_id = storage.find_stored_id("ns", "item1")
+        assert file_id is not None
+
+        shared_file = storage.serve("ns", file_id)
         try:
-            assert shared_file.file_info.id == hashed
+            assert shared_file.file_info.id == file_id
             assert shared_file.file_info.filename == f"{hashed}.mp4"
             assert shared_file.file_info.size == len(b"video content")
             assert shared_file.file_handle.read() == b"video content"
@@ -142,7 +147,7 @@ class TestServeByItemId:
         from core.exceptions import InputError
 
         with pytest.raises(InputError):
-            storage.serve_by_item_id("ns", "nonexistent")
+            storage.serve("ns", "nonexistent_file_id")
 
 
 class TestRequestDownload:
@@ -157,14 +162,15 @@ class TestRequestDownload:
 
         # Wait for the background thread to complete
         for _ in range(50):
-            if storage.is_stored("ns", "item1"):
+            if storage.find_stored_id("ns", "item1") is not None:
                 break
             time.sleep(0.1)
 
-        assert storage.is_stored("ns", "item1") is True
+        file_id = storage.find_stored_id("ns", "item1")
+        assert file_id is not None
         assert storage.is_downloading("ns", "item1") is False
 
-        shared = storage.serve_by_item_id("ns", "item1")
+        shared = storage.serve("ns", file_id)
         try:
             assert shared.file_handle.read() == b"downloaded video"
         finally:
@@ -185,7 +191,7 @@ class TestRequestDownload:
         download_started.wait(timeout=5)
 
         assert storage.is_downloading("ns", "item1") is True
-        assert storage.is_stored("ns", "item1") is False
+        assert storage.find_stored_id("ns", "item1") is None
 
         download_proceed.set()
         for _ in range(50):
@@ -194,7 +200,7 @@ class TestRequestDownload:
             time.sleep(0.1)
 
         assert storage.is_downloading("ns", "item1") is False
-        assert storage.is_stored("ns", "item1") is True
+        assert storage.find_stored_id("ns", "item1") is not None
 
     def test_noop_if_already_stored(self, storage, storage_dir):
         """Test that request_download is a no-op if file is already stored."""
@@ -244,7 +250,7 @@ class TestRequestDownload:
             time.sleep(0.1)
 
         assert storage.is_downloading("ns", "item1") is False
-        assert storage.is_stored("ns", "item1") is False
+        assert storage.find_stored_id("ns", "item1") is None
 
     def test_download_cleans_up_when_no_output(self, storage, storage_dir):
         """Test cleanup when download_fn produces no output file."""
@@ -260,7 +266,7 @@ class TestRequestDownload:
             time.sleep(0.1)
 
         assert storage.is_downloading("ns", "item1") is False
-        assert storage.is_stored("ns", "item1") is False
+        assert storage.find_stored_id("ns", "item1") is None
 
 
 class TestPathSecurity:
