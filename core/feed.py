@@ -20,7 +20,7 @@ def render_feed(feed_id: str, plugin: Plugin, options: GlobalOptions, base_url: 
                 id=episode.item_id,
                 title=episode.title,
                 media=Media(
-                    generate_url(episode, plugin, options, base_url),
+                    generate_url(episode, plugin, options, base_url, feed_id),
                     episode.content_length,
                     type=episode.content_type,
                 ),
@@ -36,11 +36,15 @@ def render_feed(feed_id: str, plugin: Plugin, options: GlobalOptions, base_url: 
 
 
 def generate_url(
-    episode: PodcastItem, plugin: Plugin, options: GlobalOptions, base_url: str
+    episode: PodcastItem,
+    plugin: Plugin,
+    options: GlobalOptions,
+    base_url: str,
+    feed_id: str,
 ):
     query_params = (
-            options.model_dump(exclude_none=True)
-            | plugin.options.model_dump(exclude_none=True)
-            | {"id": episode.item_id}
+        options.model_dump(exclude_none=True)
+        | plugin.options.model_dump(exclude_none=True)
+        | {"id": episode.item_id, "feed_id": feed_id}
     )
     return f"{base_url}download?" + urlencode(query_params)

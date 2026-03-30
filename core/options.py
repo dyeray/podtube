@@ -15,12 +15,14 @@ class GlobalOptions(Options):
     proxy_download: bool = False
     icon: HttpUrl | None = None
     api_key: Optional[constr(pattern=r"^[a-zA-Z0-9]+$")] = None
+    feed_id: Optional[constr(pattern=r"^[a-zA-Z0-9_\-]+$")] = None
 
-
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def global_checks(self):
         if self.service is None and self.plugin is None:
             raise ValueError("Either 'service' or 'plugin' need to be defined")
         if self.service is not None and self.plugin is not None:
-            raise ValueError("'service' and 'plugin' cannot be defined at the same time")
+            raise ValueError(
+                "'service' and 'plugin' cannot be defined at the same time"
+            )
         return self

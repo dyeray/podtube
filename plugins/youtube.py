@@ -1,5 +1,6 @@
 from datetime import datetime
-from typing import List, Literal
+from typing import Callable, List, Literal
+import os
 
 import httpx
 from parsel import Selector, SelectorList
@@ -15,6 +16,8 @@ from core.utils import find_first
 
 class PluginImpl(Plugin):
     service = "youtube.com"
+    supports_fs_mode = True
+    default_fs_mode_enabled = False
 
     class PluginOptions(Options):
         feed_type: Literal["channel", "playlist"] = "channel"
@@ -27,26 +30,34 @@ class PluginImpl(Plugin):
 
     @property
     def downloader(self):
-        return YoutubeDL({"format": "best[protocol=https]/best[protocol=http]", "logger": Logger()})
+        return YoutubeDL(
+            {"format": "best[protocol=https]/best[protocol=http]", "logger": Logger()}
+        )
 
     @property
     def info_extractor(self):
-        return YoutubeDL({'playlist_items': '0', 'logger': Logger()})
+        return YoutubeDL({"playlist_items": "0", "logger": Logger()})
 
     def get_feed(self, feed_id):
         response = httpx.get(
             f"https://www.youtube.com/feeds/videos.xml?{self.options.feed_type}_id={feed_id}"
         )
-        if self.options.feed_type == 'channel':
-            metadata = self.info_extractor.extract_info(f"https://www.youtube.com/channel/{feed_id}", download=False)
-            profile_info = find_first(metadata['thumbnails'], lambda x: x['id'] == "avatar_uncropped") or find_first(metadata['thumbnails'])
-            feed_url = profile_info and profile_info['url']
+        if self.options.feed_type == "channel":
+            metadata = self.info_extractor.extract_info(
+                f"https://www.youtube.com/channel/{feed_id}", download=False
+            )
+            profile_info = find_first(
+                metadata["thumbnails"], lambda x: x["id"] == "avatar_uncropped"
+            ) or find_first(metadata["thumbnails"])
+            feed_url = profile_info and profile_info["url"]
         else:
             feed_url = None
 
         sel = Selector(response.text, type="xml")
         entries = sel.xpath("//atom:feed/atom:entry", namespaces=self.namespace_map)
-        title = sel.xpath("//atom:feed/atom:title/text()", namespaces=self.namespace_map).get()
+        title = sel.xpath(
+            "//atom:feed/atom:title/text()", namespaces=self.namespace_map
+        ).get()
         return PodcastFeed(
             feed_id=feed_id,
             title=title,
@@ -64,6 +75,18 @@ class PluginImpl(Plugin):
         except Exception as ex:
             raise PluginError(ex)
 
+    def get_download_fn(self, item_id: str) -> Callable[[str], None] | None:
+        def download(temp_dir: str) -> None:
+            ydl_opts = {
+                "format": "best[protocol=https]/best[protocol=http]",
+                "logger": Logger(),
+                "outtmpl": os.path.join(temp_dir, "%(id)s.%(ext)s"),
+            }
+            with YoutubeDL(ydl_opts) as ydl:
+                ydl.download([f"https://www.youtube.com/watch?v={item_id}"])
+
+        return download
+
     def _get_items(self, entries: SelectorList) -> List[PodcastItem]:
         return [self._get_item(entry) for entry in entries]
 
@@ -72,9 +95,17 @@ class PluginImpl(Plugin):
         return PodcastItem(
             item_id=video_id,
             title=entry.xpath("atom:title/text()", namespaces=self.namespace_map).get(),
-            description=entry.xpath("media:group/media:description/text()", namespaces=self.namespace_map).get(),
+            description=entry.xpath(
+                "media:group/media:description/text()", namespaces=self.namespace_map
+            ).get(),
             link=f"https://www.youtube.com/watch?v={video_id}",
-            date=datetime.fromisoformat(entry.xpath("atom:published/text()", namespaces=self.namespace_map).get()),
-            image=entry.xpath("media:group/media:thumbnail/@url", namespaces=self.namespace_map).get(),
+            date=datetime.fromisoformat(
+                entry.xpath(
+                    "atom:published/text()", namespaces=self.namespace_map
+                ).get()
+            ),
+            image=entry.xpath(
+                "media:group/media:thumbnail/@url", namespaces=self.namespace_map
+            ).get(),
             content_type="video/mp4",
         )
