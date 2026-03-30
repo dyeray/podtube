@@ -7,7 +7,6 @@ from core.options import Options
 
 
 class Plugin(abc.ABC):
-
     service = None
     plugin_name = None
     supports_fs_mode = False
@@ -28,3 +27,7 @@ class Plugin(abc.ABC):
 
     def random_user_agent(self):
         return UserAgent().random
+
+    def peek(self, item_id: str) -> dict[str, str]:
+        """Handle a lightweight HEAD for a downloadable item. Returns a dict of headers."""
+        return {}

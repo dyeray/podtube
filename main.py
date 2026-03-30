@@ -1,12 +1,11 @@
-
 import httpx
 from dotenv import load_dotenv
 from flask import (
     Flask,
-    request,
     Response,
-    render_template,
     redirect,
+    render_template,
+    request,
     stream_with_context,
 )
 from werkzeug.utils import secure_filename
@@ -17,7 +16,6 @@ from core.feed import render_feed
 from core.options import GlobalOptions
 from core.plugin.plugin_factory import PluginFactory
 from core.storage.storage import Storage
-
 
 load_dotenv()
 app = Flask(__name__)
@@ -40,7 +38,15 @@ def feed():
     )
 
 
-@app.route("/download")
+@app.route("/download", methods=["HEAD"])
+@require_auth
+def download_head():
+    options = GlobalOptions(**request.args)
+    plugin = PluginFactory.create(options.service, options.plugin, request.args)
+    return Response(status=200, headers=plugin.peek(options.id))
+
+
+@app.route("/download", methods=["GET"])
 @require_auth
 def download():
     options = GlobalOptions(**request.args)
@@ -57,8 +63,8 @@ def download():
             stream_with_context(generate_file(shared_file.file_handle)),
             content_type=shared_file.file_info.mimetype or "application/octet-stream",
             headers={
-                'Content-Disposition': f'attachment; filename="{safe_name}"',
-                'Content-Length': str(shared_file.file_info.size)
+                "Content-Disposition": f'attachment; filename="{safe_name}"',
+                "Content-Length": str(shared_file.file_info.size),
             },
         )
         resp.call_on_close(shared_file.close)
