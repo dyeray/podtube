@@ -51,13 +51,10 @@ def download_head():
 def download():
     options = GlobalOptions(**request.args)
     plugin = PluginFactory.create(options.service, options.plugin, request.args)
-    if Config.is_filesystem_mode_enabled(plugin):
+    if Config.is_filesystem_mode_enabled(plugin) and options.storage:
         storage = Storage(plugin)
-        if plugin.plugin_name == "filesystem":
-            return _serve_filesystem_plugin(options, storage)
-        else:
-            return _serve_with_download(options, plugin, storage)
-    elif options.proxy_download:
+        return _serve_with_storage(options, plugin, storage)
+    if options.proxy_download:
         url = plugin.get_item_url(options.id)
         req = httpx.get(url, stream=True)
         return Response(
@@ -68,17 +65,7 @@ def download():
         return redirect(plugin.get_item_url(options.id), code=302)
 
 
-def _serve_filesystem_plugin(options, storage):
-    """Serve files directly from the filesystem plugin (original behavior)."""
-    parts = options.id.split(":")
-    if len(parts) != 2:
-        return Response("Invalid id format. Expected namespace:file_id", status=400)
-    namespace, item_id = parts
-    shared_file = storage.serve(namespace=namespace, file_id=item_id)
-    return _stream_shared_file(shared_file)
-
-
-def _serve_with_download(options, plugin, storage):
+def _serve_with_storage(options, plugin, storage):
     """Serve from storage if available, otherwise trigger a background download."""
     namespace = options.feed_id
     item_id = options.id
@@ -90,14 +77,15 @@ def _serve_with_download(options, plugin, storage):
         shared_file = storage.serve(namespace, file_id)
         return _stream_shared_file(shared_file)
 
-    if not storage.is_downloading(namespace, item_id):
-        download_fn = plugin.get_download_fn(item_id)
-        if download_fn:
-            storage.request_download(namespace, item_id, download_fn)
-        else:
-            return redirect(plugin.get_item_url(options.id), code=302)
+    if storage.is_downloading(namespace, item_id):
+        return Response(status=202, headers={"Retry-After": "30"})
 
-    return Response(status=202, headers={"Retry-After": "30"})
+    download_fn = plugin.get_download_fn(item_id)
+    if download_fn:
+        storage.request_download(namespace, item_id, download_fn)
+        return Response(status=202, headers={"Retry-After": "30"})
+
+    return redirect(plugin.get_item_url(options.id), code=302)
 
 
 def _stream_shared_file(shared_file):

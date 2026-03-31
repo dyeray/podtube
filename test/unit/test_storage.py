@@ -54,6 +54,18 @@ class TestFindStoredId:
         assert file_id is not None
         assert file_id == storage.hasher.hash(f"{hashed}.mp4")
 
+    def test_returns_item_id_when_it_is_already_a_file_id(self, storage, storage_dir):
+        """For pre-existing files (e.g. filesystem plugin), item_id may already
+        be a file_id (hash of filename). find_stored_id should return it directly."""
+        ns_dir = storage_dir / "ns"
+        ns_dir.mkdir()
+        filename = "song.mp3"
+        (ns_dir / filename).write_text("audio content")
+
+        file_id = storage.hasher.hash(filename)
+        result = storage.find_stored_id("ns", file_id)
+        assert result == file_id
+
     def test_not_stored_when_only_downloading_marker(self, storage, storage_dir):
         ns_dir = storage_dir / "ns"
         ns_dir.mkdir()

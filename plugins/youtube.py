@@ -1,10 +1,12 @@
 from datetime import datetime
-from typing import Callable, List, Literal
+from typing import Callable, List, Literal, Optional
 import os
 
 import httpx
 from parsel import Selector, SelectorList
 from yt_dlp import YoutubeDL
+from yt_dlp.postprocessor.ffmpeg import FFmpegPostProcessor
+from yt_dlp.utils import prepend_extension
 
 from core.model import PodcastItem, PodcastFeed
 from core.exceptions import PluginError
@@ -12,6 +14,52 @@ from core.options import Options
 from core.plugin.plugin import Plugin
 from core.plugin.ytdl_logger import Logger
 from core.utils import find_first
+
+from pydantic import constr
+
+
+class FFmpegBurnSubtitlePP(FFmpegPostProcessor):
+    """Post-processor that burns (hardcodes) subtitles into the video frames.
+    Unlike FFmpegEmbedSubtitle which adds a togglable track, this re-encodes the
+    video with the subtitle text rendered directly onto the frames, guaranteeing
+    visibility in all players."""
+
+    def run(self, info):
+        filename = info["filepath"]
+        subtitles = info.get("requested_subtitles")
+        if not subtitles:
+            self.to_screen("No subtitles to burn in")
+            return [], info
+
+        # Get the first (and typically only) subtitle file
+        sub_info = next(iter(subtitles.values()))
+        sub_filepath = sub_info.get("filepath", "")
+        if not os.path.exists(sub_filepath):
+            self.report_warning(f"Subtitle file not found: {sub_filepath}")
+            return [], info
+
+        temp_filename = prepend_extension(filename, "temp")
+        # Escape special characters in the subtitle path for FFmpeg filter syntax
+        escaped_path = (
+            sub_filepath.replace("\\", "\\\\").replace("'", "\\'").replace(":", "\\:")
+        )
+        self.to_screen(f'Burning subtitles into "{filename}"')
+        self.run_ffmpeg(
+            filename,
+            temp_filename,
+            [
+                "-map",
+                "0",
+                "-dn",
+                "-ignore_unknown",
+                "-c:a",
+                "copy",
+                "-vf",
+                f"subtitles='{escaped_path}'",
+            ],
+        )
+        os.replace(temp_filename, filename)
+        return [sub_filepath], info
 
 
 class PluginImpl(Plugin):
@@ -21,6 +69,7 @@ class PluginImpl(Plugin):
 
     class PluginOptions(Options):
         feed_type: Literal["channel", "playlist"] = "channel"
+        subtitles: Optional[constr(pattern=r"^[a-z]{2,3}$")] = None
 
     namespace_map = {
         "yt": "http://www.youtube.com/xml/schemas/2015",
@@ -76,13 +125,21 @@ class PluginImpl(Plugin):
             raise PluginError(ex)
 
     def get_download_fn(self, item_id: str) -> Callable[[str], None] | None:
+        subtitles_lang = self.options.subtitles
+
         def download(temp_dir: str) -> None:
             ydl_opts = {
                 "format": "best[protocol=https]/best[protocol=http]",
                 "logger": Logger(),
                 "outtmpl": os.path.join(temp_dir, "%(id)s.%(ext)s"),
             }
+            if subtitles_lang:
+                ydl_opts["writesubtitles"] = True
+                ydl_opts["writeautomaticsub"] = True
+                ydl_opts["subtitleslangs"] = [subtitles_lang]
             with YoutubeDL(ydl_opts) as ydl:
+                if subtitles_lang:
+                    ydl.add_post_processor(FFmpegBurnSubtitlePP())
                 ydl.download([f"https://www.youtube.com/watch?v={item_id}"])
 
         return download

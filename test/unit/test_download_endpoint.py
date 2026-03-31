@@ -12,8 +12,9 @@ from core.storage.hasher import Hasher
 @pytest.fixture
 def client():
     app.config["TESTING"] = True
-    with app.test_client() as client:
-        yield client
+    with patch("core.auth.Config.get_required_api_key", return_value=None):
+        with app.test_client() as client:
+            yield client
 
 
 @pytest.fixture
@@ -65,7 +66,9 @@ class TestDownloadWithFilesystemMode:
                 or setattr(self, "plugin", plugin),
             ),
         ):
-            resp = client.get("/download?plugin=youtube&id=dQw4w9WgXcQ&feed_id=UCtest")
+            resp = client.get(
+                "/download?plugin=youtube&id=dQw4w9WgXcQ&feed_id=UCtest&storage=true"
+            )
 
             assert resp.status_code == 202
             assert resp.headers.get("Retry-After") == "30"
@@ -104,7 +107,9 @@ class TestDownloadWithFilesystemMode:
                 or setattr(self, "plugin", plugin),
             ),
         ):
-            resp = client.get("/download?plugin=youtube&id=dQw4w9WgXcQ&feed_id=UCtest")
+            resp = client.get(
+                "/download?plugin=youtube&id=dQw4w9WgXcQ&feed_id=UCtest&storage=true"
+            )
 
             assert resp.status_code == 200
             assert resp.data == b"cached video content"
@@ -140,7 +145,9 @@ class TestDownloadWithFilesystemMode:
                 or setattr(self, "plugin", plugin),
             ),
         ):
-            resp = client.get("/download?plugin=youtube&id=dQw4w9WgXcQ&feed_id=UCtest")
+            resp = client.get(
+                "/download?plugin=youtube&id=dQw4w9WgXcQ&feed_id=UCtest&storage=true"
+            )
 
             assert resp.status_code == 202
             assert resp.headers.get("Retry-After") == "30"
@@ -158,7 +165,7 @@ class TestDownloadWithFilesystemMode:
             patch("main.PluginFactory.create", return_value=mock_plugin),
             patch("main.Config.is_filesystem_mode_enabled", return_value=True),
         ):
-            resp = client.get("/download?plugin=youtube&id=dQw4w9WgXcQ")
+            resp = client.get("/download?plugin=youtube&id=dQw4w9WgXcQ&storage=true")
 
             assert resp.status_code == 400
 
@@ -188,13 +195,17 @@ class TestDownloadWithFilesystemMode:
                 or setattr(self, "plugin", plugin),
             ),
         ):
-            resp = client.get("/download?plugin=youtube&id=dQw4w9WgXcQ&feed_id=UCtest")
+            resp = client.get(
+                "/download?plugin=youtube&id=dQw4w9WgXcQ&feed_id=UCtest&storage=true"
+            )
 
             assert resp.status_code == 302
             assert "example.com/video.mp4" in resp.headers["Location"]
 
-    def test_filesystem_plugin_unchanged(self, client, storage_dir, hasher):
-        """The filesystem plugin still uses the original namespace:file_id format."""
+    def test_filesystem_plugin_serves_pre_existing_file(
+        self, client, storage_dir, hasher
+    ):
+        """The filesystem plugin serves pre-existing files through the unified storage path."""
         mock_plugin = MagicMock()
         mock_plugin.plugin_name = "filesystem"
         mock_plugin.supports_fs_mode = True
@@ -202,7 +213,7 @@ class TestDownloadWithFilesystemMode:
         mock_plugin.options = MagicMock()
         mock_plugin.options.model_dump.return_value = {}
 
-        # Pre-populate storage with a file
+        # Pre-populate storage with a file (original name, not hash-named)
         ns_dir = storage_dir / "myns"
         ns_dir.mkdir()
         test_file = ns_dir / "test_audio.mp3"
@@ -224,7 +235,98 @@ class TestDownloadWithFilesystemMode:
                 or setattr(self, "plugin", plugin),
             ),
         ):
-            resp = client.get(f"/download?plugin=filesystem&id=myns:{file_hash}")
+            resp = client.get(
+                f"/download?plugin=filesystem&id={file_hash}&feed_id=myns&storage=true"
+            )
 
             assert resp.status_code == 200
             assert resp.data == b"audio data"
+
+    def test_redirects_when_storage_not_requested(self, client):
+        """When server allows storage mode but the feed does not request it, redirect."""
+        mock_plugin = MagicMock()
+        mock_plugin.plugin_name = "youtube"
+        mock_plugin.supports_fs_mode = True
+        mock_plugin.default_fs_mode_enabled = False
+        mock_plugin.options = MagicMock()
+        mock_plugin.options.model_dump.return_value = {}
+        mock_plugin.get_item_url.return_value = "https://example.com/video.mp4"
+
+        with (
+            patch("main.PluginFactory.create", return_value=mock_plugin),
+            patch("main.Config.is_filesystem_mode_enabled", return_value=True),
+        ):
+            resp = client.get("/download?plugin=youtube&id=dQw4w9WgXcQ&feed_id=UCtest")
+
+            assert resp.status_code == 302
+            assert "example.com/video.mp4" in resp.headers["Location"]
+
+
+class TestYoutubeSubtitles:
+    """Test that the YouTube plugin configures yt-dlp subtitle options correctly."""
+
+    def test_download_fn_includes_subtitle_opts_when_set(self):
+        """When subtitles=en is set, get_download_fn produces yt-dlp opts with subtitle config
+        and registers FFmpegBurnSubtitlePP."""
+        from plugins.youtube import PluginImpl, FFmpegBurnSubtitlePP
+
+        plugin = PluginImpl({"subtitles": "en"})
+        download_fn = plugin.get_download_fn("test_id")
+        assert download_fn is not None
+
+        captured_opts = {}
+        added_pps = []
+
+        def mock_ytdl_init(self_ydl, opts):
+            captured_opts.update(opts)
+
+        def mock_add_pp(self_ydl, pp, when="post_process"):
+            added_pps.append(pp)
+
+        with (
+            patch("plugins.youtube.YoutubeDL.__init__", mock_ytdl_init),
+            patch("plugins.youtube.YoutubeDL.__enter__", lambda self: self),
+            patch("plugins.youtube.YoutubeDL.__exit__", lambda *a: None),
+            patch("plugins.youtube.YoutubeDL.download", lambda self, urls: None),
+            patch("plugins.youtube.YoutubeDL.add_post_processor", mock_add_pp),
+        ):
+            download_fn("/tmp/test")
+
+        assert captured_opts["writesubtitles"] is True
+        assert captured_opts["writeautomaticsub"] is True
+        assert captured_opts["subtitleslangs"] == ["en"]
+        assert "postprocessors" not in captured_opts
+        assert len(added_pps) == 1
+        assert isinstance(added_pps[0], FFmpegBurnSubtitlePP)
+
+    def test_download_fn_no_subtitle_opts_when_not_set(self):
+        """When subtitles is not set, get_download_fn does not include subtitle config."""
+        from plugins.youtube import PluginImpl
+
+        plugin = PluginImpl({})
+        download_fn = plugin.get_download_fn("test_id")
+        assert download_fn is not None
+
+        captured_opts = {}
+        added_pps = []
+
+        def mock_ytdl_init(self_ydl, opts):
+            captured_opts.update(opts)
+
+        def mock_add_pp(self_ydl, pp, when="post_process"):
+            added_pps.append(pp)
+
+        with (
+            patch("plugins.youtube.YoutubeDL.__init__", mock_ytdl_init),
+            patch("plugins.youtube.YoutubeDL.__enter__", lambda self: self),
+            patch("plugins.youtube.YoutubeDL.__exit__", lambda *a: None),
+            patch("plugins.youtube.YoutubeDL.download", lambda self, urls: None),
+            patch("plugins.youtube.YoutubeDL.add_post_processor", mock_add_pp),
+        ):
+            download_fn("/tmp/test")
+
+        assert "writesubtitles" not in captured_opts
+        assert "writeautomaticsub" not in captured_opts
+        assert "subtitleslangs" not in captured_opts
+        assert "postprocessors" not in captured_opts
+        assert len(added_pps) == 0

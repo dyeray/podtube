@@ -55,7 +55,15 @@ class Storage:
 
     def find_stored_id(self, namespace: str, item_id: str) -> str | None:
         """Check if a completed download exists for the given item.
-        Returns the file_id (usable with serve()) if found, None otherwise."""
+        Returns the file_id (usable with serve()) if found, None otherwise.
+
+        Supports two lookup modes:
+        - Hash-based: files stored via store() are named hash(item_id).ext,
+          so we look for files whose stem matches hash(item_id).
+        - Direct file_id: for pre-existing files (e.g. filesystem plugin),
+          item_id may already be a file_id (hash of filename). We check if
+          item_id is a known key in the namespace file listing.
+        """
         self._assert_permissions()
         hashed = self.hasher.hash(item_id)
         try:
@@ -64,11 +72,16 @@ class Storage:
             return None
         if not namespace_path.exists():
             return None
+        # Hash-based lookup: files stored via store() have stem == hash(item_id)
         for filename in os.listdir(namespace_path):
             path = namespace_path / filename
             stem, suffix = os.path.splitext(filename)
             if path.is_file() and stem == hashed and suffix != DOWNLOADING_EXTENSION:
                 return self.hasher.hash(filename)
+        # Direct file_id lookup: item_id may already be a file_id (hash of filename)
+        namespace_files = self._get_namespace_files(namespace)
+        if item_id in namespace_files:
+            return item_id
         return None
 
     def is_downloading(self, namespace: str, item_id: str) -> bool:
