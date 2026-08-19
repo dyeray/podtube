@@ -1,4 +1,5 @@
 import abc
+from typing import Callable
 
 from fake_useragent import UserAgent
 
@@ -24,6 +25,12 @@ class Plugin(abc.ABC):
     @abc.abstractmethod
     def get_item_url(self, item_id: str) -> str:
         """Calculates the downloadable url of an item in the feed."""
+
+    def get_download_fn(self, item_id: str) -> Callable[[str], None] | None:
+        """Returns a callable that downloads the item into a given temp directory path.
+        The callable signature is: download_fn(temp_dir: str) -> None.
+        Returns None if the plugin does not support background downloads."""
+        return None
 
     def random_user_agent(self):
         return UserAgent().random

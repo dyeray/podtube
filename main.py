@@ -51,25 +51,10 @@ def download_head():
 def download():
     options = GlobalOptions(**request.args)
     plugin = PluginFactory.create(options.service, options.plugin, request.args)
-    if Config.is_filesystem_mode_enabled(plugin):
-        parts = options.id.split(":")
-        if len(parts) != 2:
-            return Response("Invalid id format. Expected namespace:file_id", status=400)
-        namespace, item_id = parts
+    if Config.is_filesystem_mode_enabled(plugin) and options.storage:
         storage = Storage(plugin)
-        shared_file = storage.serve(namespace=namespace, file_id=item_id)
-        safe_name = secure_filename(shared_file.file_info.filename) or "download"
-        resp = Response(
-            stream_with_context(generate_file(shared_file.file_handle)),
-            content_type=shared_file.file_info.mimetype or "application/octet-stream",
-            headers={
-                "Content-Disposition": f'attachment; filename="{safe_name}"',
-                "Content-Length": str(shared_file.file_info.size),
-            },
-        )
-        resp.call_on_close(shared_file.close)
-        return resp
-    elif options.proxy_download:
+        return _serve_with_storage(options, plugin, storage)
+    if options.proxy_download:
         url = plugin.get_item_url(options.id)
         req = httpx.get(url, stream=True)
         return Response(
@@ -78,6 +63,44 @@ def download():
         )
     else:
         return redirect(plugin.get_item_url(options.id), code=302)
+
+
+def _serve_with_storage(options, plugin, storage):
+    """Serve from storage if available, otherwise trigger a background download."""
+    namespace = options.feed_id
+    item_id = options.id
+    if not namespace:
+        return Response("Missing feed_id parameter", status=400)
+
+    file_id = storage.find_stored_id(namespace, item_id)
+    if file_id is not None:
+        shared_file = storage.serve(namespace, file_id)
+        return _stream_shared_file(shared_file)
+
+    if storage.is_downloading(namespace, item_id):
+        return Response(status=202, headers={"Retry-After": "30"})
+
+    download_fn = plugin.get_download_fn(item_id)
+    if download_fn:
+        storage.request_download(namespace, item_id, download_fn)
+        return Response(status=202, headers={"Retry-After": "30"})
+
+    return redirect(plugin.get_item_url(options.id), code=302)
+
+
+def _stream_shared_file(shared_file):
+    """Stream a SharedFile as an HTTP response."""
+    safe_name = secure_filename(shared_file.file_info.filename) or "download"
+    resp = Response(
+        stream_with_context(generate_file(shared_file.file_handle)),
+        content_type=shared_file.file_info.mimetype or "application/octet-stream",
+        headers={
+            "Content-Disposition": f'attachment; filename="{safe_name}"',
+            "Content-Length": str(shared_file.file_info.size),
+        },
+    )
+    resp.call_on_close(shared_file.close)
+    return resp
 
 
 def generate_file(file_like_object):
