@@ -80,7 +80,11 @@ class PluginImpl(Plugin):
     @property
     def downloader(self):
         return YoutubeDL(
-            {"format": "best[protocol=https]/best[protocol=http]", "logger": Logger()}
+            {
+                "format": "best[protocol=https]/best[protocol=http]",
+                "extractor_args": {"youtube": {"player_client": ["mweb"]}},
+                "logger": Logger(),
+            }
         )
 
     @property
@@ -130,6 +134,7 @@ class PluginImpl(Plugin):
         def download(temp_dir: str) -> None:
             ydl_opts = {
                 "format": "best[protocol=https]/best[protocol=http]",
+                "extractor_args": {"youtube": {"player_client": ["mweb"]}},
                 "logger": Logger(),
                 "outtmpl": os.path.join(temp_dir, "%(id)s.%(ext)s"),
             }
