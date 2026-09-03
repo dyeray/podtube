@@ -1,5 +1,6 @@
 pod2gen==1.0.3
 yt-dlp[default]
+bgutil-ytdlp-pot-provider
 flask==3.1.2
 gunicorn==23.0.0
 httpx==0.28.1
