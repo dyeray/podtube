@@ -1,3 +1,7 @@
+import time
+from pathlib import Path
+
+import click
 import httpx
 from dotenv import load_dotenv
 from flask import (
@@ -19,6 +23,53 @@ from core.storage.storage import Storage
 
 load_dotenv()
 app = Flask(__name__)
+
+
+@app.cli.command("cleanup-downloads")
+@click.option("--older-than-days", type=click.IntRange(min=1), required=True)
+@click.option("--dry-run", is_flag=True)
+def cleanup_downloads(older_than_days, dry_run):
+    """Delete old downloaded media while preserving managed files and active downloads."""
+    root = Path("storage")
+    filesystem_root = root / "filesystem"
+    cutoff = time.time() - older_than_days * 86400
+    old_files = []
+
+    if root.exists():
+        for path in root.rglob("*"):
+            if (
+                path.is_symlink()
+                or path.suffix == ".downloading"
+                or path.is_relative_to(filesystem_root)
+                or not path.is_file()
+            ):
+                continue
+            try:
+                if path.stat().st_mtime < cutoff:
+                    old_files.append(path)
+            except FileNotFoundError:
+                pass
+
+    if dry_run:
+        click.echo(f"Would delete {len(old_files)} file(s).")
+        return
+
+    deleted = 0
+    for path in old_files:
+        try:
+            path.unlink()
+            deleted += 1
+        except FileNotFoundError:
+            pass
+
+    for path in sorted(root.rglob("*"), key=lambda item: len(item.parts), reverse=True):
+        if path.is_dir() and not path.is_symlink() and not path.is_relative_to(filesystem_root):
+            try:
+                path.rmdir()
+            except OSError:
+                pass
+
+    click.echo(f"Deleted {deleted} file(s).")
 
 
 @app.route("/")
