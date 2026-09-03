@@ -13,7 +13,7 @@ class GlobalOptions(Options):
     id: constr(pattern=r"^[a-zA-Z0-9_\-:]+$")
     format: Literal["rss", "atom"] = "rss"
     proxy_download: bool = False
-    storage: bool = False
+    storage: bool = True
     icon: HttpUrl | None = None
     api_key: Optional[constr(pattern=r"^[a-zA-Z0-9]+$")] = None
     feed_id: Optional[constr(pattern=r"^[a-zA-Z0-9_\-]+$")] = None
