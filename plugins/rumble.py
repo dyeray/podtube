@@ -19,6 +19,7 @@ from core.plugin.ytdl_logger import Logger
 class PluginImpl(Plugin):
     service = "rumble.com"
     supports_fs_mode = True
+    default_fs_mode_enabled = True
 
     @property
     def downloader(self):

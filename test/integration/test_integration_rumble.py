@@ -2,6 +2,7 @@ from unittest.mock import ANY, MagicMock, PropertyMock, patch
 
 import pytest
 
+from core.config import Config
 from core.exceptions import PluginError
 from plugins.rumble import PluginImpl
 
@@ -113,3 +114,12 @@ def test_storage_download_uses_ytdlp_for_the_rumble_page(tmp_path):
     downloader.download.assert_called_once_with(
         ["https://rumble.com/v123abc-sample-video.html"]
     )
+
+
+def test_global_filesystem_mode_enables_rumble_storage(monkeypatch):
+    monkeypatch.setenv("PODTUBE_FILESYSTEM_MODE", "true")
+    monkeypatch.delenv("PODTUBE_FILESYSTEM_MODE_PLUGIN_rumble", raising=False)
+    plugin = PluginImpl({})
+    plugin.plugin_name = "rumble"
+
+    assert Config.is_filesystem_mode_enabled(plugin)
