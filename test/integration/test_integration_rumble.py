@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock, PropertyMock, patch
+from unittest.mock import ANY, MagicMock, PropertyMock, patch
 
 import pytest
 
@@ -90,3 +90,26 @@ def test_get_item_url_rejects_rumble_channel_urls():
         )
 
     downloader.extract_info.assert_not_called()
+
+
+def test_storage_download_uses_ytdlp_for_the_rumble_page(tmp_path):
+    downloader = MagicMock()
+
+    with patch("plugins.rumble.YoutubeDL") as youtube_dl:
+        youtube_dl.return_value.__enter__.return_value = downloader
+        download = PluginImpl({}).get_download_fn(
+            "aHR0cHM6Ly9ydW1ibGUuY29tL3YxMjNhYmMtc2FtcGxlLXZpZGVvLmh0bWw"
+        )
+        download(str(tmp_path))
+
+    assert PluginImpl.supports_fs_mode
+    youtube_dl.assert_called_once_with(
+        {
+            "format": "best",
+            "logger": ANY,
+            "outtmpl": str(tmp_path / "%(id)s.%(ext)s"),
+        }
+    )
+    downloader.download.assert_called_once_with(
+        ["https://rumble.com/v123abc-sample-video.html"]
+    )

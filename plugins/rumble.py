@@ -1,7 +1,9 @@
 import json
+import os
 import re
 from base64 import urlsafe_b64decode, urlsafe_b64encode
 from datetime import datetime
+from typing import Callable
 from urllib.parse import urlparse
 
 import httpx
@@ -16,6 +18,7 @@ from core.plugin.ytdl_logger import Logger
 
 class PluginImpl(Plugin):
     service = "rumble.com"
+    supports_fs_mode = True
 
     @property
     def downloader(self):
@@ -44,6 +47,30 @@ class PluginImpl(Plugin):
 
     def get_item_url(self, item_id: str) -> str:
         try:
+            return self.downloader.extract_info(
+                self._get_video_url(item_id), download=False
+            )["url"]
+        except Exception as ex:
+            raise PluginError(ex)
+
+    def get_download_fn(self, item_id: str) -> Callable[[str], None]:
+        url = self._get_video_url(item_id)
+
+        def download(temp_dir: str) -> None:
+            with YoutubeDL(
+                {
+                    "format": "best",
+                    "logger": Logger(),
+                    "outtmpl": os.path.join(temp_dir, "%(id)s.%(ext)s"),
+                }
+            ) as downloader:
+                downloader.download([url])
+
+        return download
+
+    @staticmethod
+    def _get_video_url(item_id: str) -> str:
+        try:
             url = urlsafe_b64decode(item_id + "=" * (-len(item_id) % 4)).decode()
             parsed_url = urlparse(url)
             if (
@@ -54,7 +81,7 @@ class PluginImpl(Plugin):
                 or parsed_url.fragment
             ):
                 raise ValueError("Invalid Rumble video URL")
-            return self.downloader.extract_info(url, download=False)["url"]
+            return url
         except Exception as ex:
             raise PluginError(ex)
 
