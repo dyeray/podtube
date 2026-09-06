@@ -8,3 +8,5 @@ todo.txt
 /storage/
 /utils/
 gunicorn.conf.py
+AGENTS.md
+docs/superpowers/

@@ -19,6 +19,7 @@
       <li>Invidious</li>
       <li>iVoox Originals</li>
       <li>Instagram Reels</li>
+      <li>Rumble Channels</li>
       <li>Filesystem</li>
     </ul>
     <h2>Instructions</h2>
@@ -28,14 +29,15 @@
     </p>
     <h3>service (required)</h3>
     <p>
-      Name of the service that is going to be used. It's the name of one of the plugins on plugins folder (currently invidious, ivoox or youtube)<br/>
+      Domain of the service to use, such as rumble.com. Alternatively, the plugin parameter selects a plugin module such as rumble.<br/>
     </p>
     <h3>id (required)</h3>
     <p>
-      Identifier of the channel/podcast that you want the feed from. For YouTube/Invidious it is the channel id. For iVoox it is the podcast url without domain or .html.
+      Identifier of the channel/podcast that you want the feed from. For YouTube/Invidious it is the channel id. For iVoox it is the podcast url without domain or .html. For Rumble it is the user id.
       Examples:<br/><br/>
       * https://www.youtube.com/channel/UC2bkHVIDjXS7sgrgjFtzOXQ -> UC2bkHVIDjXS7sgrgjFtzOXQ<br/>
       * https://www.ivoox.com/podcast-cuarto-milenio-oficial_sq_f17162_1.html -> podcast-cuarto-milenio-oficial_sq_f17162_1<br/>
+      * https://rumble.com/user/JOHNMH82/videos -> JOHNMH82<br/>
     </p>
     <h3>format</h3>
     <p>Output format of the feed. Accepted values are rss and atom. The default value is rss.</p>
@@ -61,6 +63,7 @@
     <a href="{{host_url}}feed?id=UCtESv1e7ntJaLJYKIO1FoYw&service=invidious">{{host_url}}feed?id=UCtESv1e7ntJaLJYKIO1FoYw&service=invidious</a><br/>
     <a href="{{host_url}}feed?id=podcast-danko_sq_f11313_1&service=ivoox">{{host_url}}feed?id=podcast-danko_sq_f11313_1&service=ivoox</a><br/>
     <a href="{{host_url}}feed?id=cenandoconpablo&service=instagram">{{host_url}}feed?id=cenandoconpablo&service=instagram</a><br/>
+    <a href="{{host_url}}feed?id=JOHNMH82&service=rumble.com">{{host_url}}feed?id=JOHNMH82&service=rumble.com</a><br/>
   </body>
 
   <h2>podtube v2 migration</h2>
