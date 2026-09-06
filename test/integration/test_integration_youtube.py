@@ -1,16 +1,6 @@
 import datetime
 
-from core.config import Config
 from plugins.youtube import PluginImpl
-
-
-def test_global_filesystem_mode_enables_youtube_storage(monkeypatch):
-    monkeypatch.setenv("PODTUBE_FILESYSTEM_MODE", "true")
-    monkeypatch.delenv("PODTUBE_FILESYSTEM_MODE_PLUGIN_youtube", raising=False)
-    plugin = PluginImpl({})
-    plugin.plugin_name = "youtube"
-
-    assert Config.is_filesystem_mode_enabled(plugin)
 
 
 def test_get_feed(utils, httpx_mock):

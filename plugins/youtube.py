@@ -65,7 +65,7 @@ class FFmpegBurnSubtitlePP(FFmpegPostProcessor):
 class PluginImpl(Plugin):
     service = "youtube.com"
     supports_fs_mode = True
-    default_fs_mode_enabled = True
+    default_fs_mode_enabled = False
 
     class PluginOptions(Options):
         feed_type: Literal["channel", "playlist"] = "channel"

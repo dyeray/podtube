@@ -256,7 +256,9 @@ class TestDownloadWithFilesystemMode:
             patch("main.PluginFactory.create", return_value=mock_plugin),
             patch("main.Config.is_filesystem_mode_enabled", return_value=True),
         ):
-            resp = client.get("/download?plugin=youtube&id=dQw4w9WgXcQ&feed_id=UCtest")
+            resp = client.get(
+                "/download?plugin=youtube&id=dQw4w9WgXcQ&feed_id=UCtest&storage=false"
+            )
 
             assert resp.status_code == 302
             assert "example.com/video.mp4" in resp.headers["Location"]
